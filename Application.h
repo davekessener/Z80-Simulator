@@ -11,25 +11,41 @@
 #include "Program.h"
 #include "Manager.h"
 #include "Schedule.h"
+#include "Command.h"
 
 namespace z80
 {
 	class Application
 	{
+		typedef void (Application::*command_fn)(const Tokenizer&);
+		typedef std::function<std::string(const uint8_t *)> deasm_fn;
+
 		public:
 			Application( );
 			~Application( );
 			void run( );
 			void execute(const std::string&);
 		private:
-			Z80 cpu_;
-			Screen screen_;
-			Keyboard keyboard_;
-			StatusPort status_;
-			ScreenWindow wScreen_;
-			RAMMonitor wRAM_;
-			winui::CommandWindow wTerminal_;
-			lib::Schedule schedule_;
+			void quit(const Tokenizer&);
+			void load(const Tokenizer&);
+			void reset(const Tokenizer&);
+			void start(const Tokenizer&);
+			void stop(const Tokenizer&);
+			void step(const Tokenizer&);
+
+		private:
+			Z80 mCPU;
+			Screen mScreen;
+			Keyboard mKeyboard;
+			StatusPort mStatus;
+			ScreenWindow wScreen;
+			RAMMonitor wRAM;
+			winui::CommandWindow wTerminal;
+			lib::Schedule mSchedule;
+			std::map<std::string, command_fn> mInstructions;
+			deasm_fn fnDeassemble;
+
+			bool cpu_running;
 	};
 }
 

@@ -29,6 +29,7 @@ namespace z80
 		public:
 			void printStatus(std::ostream&);
 			void printRAM(std::ostream&, addr_t, size_t);
+			uint16_t getPC( ) const { return PC; }
 			void reset( );
 			void loadRAM(addr_t, const Program&);
 			void registerPeripheral(port_t, Peripheral&);
@@ -36,7 +37,7 @@ namespace z80
 			bool isHalted( ) const { return halted_; }
 			void restart( ) { halted_ = false; }
 			void interrupt( ) { if(int_) interrupted_ = true; }
-			uint8_t getRAM(uint16_t a) const { return ram_[a]; }
+			uint8_t& RAM(uint16_t a) { return ram_[a]; }
 		private:
 			void pushB(uint8_t);
 			void pushW(uint16_t);
@@ -53,6 +54,7 @@ namespace z80
 			void storeW(uint16_t, uint16_t);
 			void call(uint16_t);
 			void ret( );
+			uint16_t getOff(uint16_t, uint8_t);
 			void set_inc_flags(uint8_t);
 			void set_dec_flags(uint8_t);
 			void set_flags(uint, uint /*P/V*/, uint /*S*/, uint /*Z*/, uint /*H*/, uint /*N*/, uint /*C*/);
