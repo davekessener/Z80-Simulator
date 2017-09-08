@@ -10,6 +10,12 @@ namespace z80 {
 Program::Program(const std::string& fn)
 {
 	std::ifstream in(fn, std::ios::binary);
+
+	if(!in.good())
+	{
+		throw std::string("File \"" + fn + "\" could not be opened.");
+	}
+
 	std::vector<char> buf(
 		(std::istreambuf_iterator<char>(in)), 
 		(std::istreambuf_iterator<char>()));

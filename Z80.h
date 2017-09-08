@@ -29,7 +29,6 @@ namespace z80
 		public:
 			void printStatus(std::ostream&);
 			void printRAM(std::ostream&, addr_t, size_t);
-			uint16_t getPC( ) const { return PC; }
 			void reset( );
 			void loadRAM(addr_t, const Program&);
 			void registerPeripheral(port_t, Peripheral&);
@@ -38,6 +37,33 @@ namespace z80
 			void restart( ) { halted_ = false; }
 			void interrupt( ) { if(int_) interrupted_ = true; }
 			uint8_t& RAM(uint16_t a) { return ram_[a]; }
+			uint16_t getPC( ) const { return PC; }
+			uint16_t getSP( ) const { return SP; }
+			uint16_t getAF( ) const { return AF; }
+			uint16_t getAFp( ) const { return AFp; }
+			uint16_t getBC( ) const { return BC; }
+			uint16_t getBCp( ) const { return BCp; }
+			uint16_t getDE( ) const { return DE; }
+			uint16_t getDEp( ) const { return DEp; }
+			uint16_t getHL( ) const { return HL; }
+			uint16_t getHLp( ) const { return HLp; }
+			uint16_t getIX( ) const { return IX; }
+			uint16_t getIY( ) const { return IY; }
+			void setPC(uint16_t v) { PC = v; }
+			void setSP(uint16_t v) { SP = v; }
+			void setAF(uint16_t v) { AF = v; }
+			void setBC(uint16_t v) { BC = v; }
+			void setDE(uint16_t v) { DE = v; }
+			void setHL(uint16_t v) { HL = v; }
+			void setIX(uint16_t v) { IX = v; }
+			void setIY(uint16_t v) { IY = v; }
+			bool getFlagS( ) const { return AF & FLAG_S; }
+			bool getFlagZ( ) const { return AF & FLAG_Z; }
+			bool getFlagH( ) const { return AF & FLAG_H; }
+			bool getFlagPV( ) const { return AF & FLAG_PV; }
+			bool getFlagN( ) const { return AF & FLAG_N; }
+			bool getFlagC( ) const { return AF & FLAG_C; }
+			std::string disassemble(uint16_t) const;
 		private:
 			void pushB(uint8_t);
 			void pushW(uint16_t);

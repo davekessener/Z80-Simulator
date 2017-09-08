@@ -27,7 +27,10 @@ namespace z80
 
 		public:
 			ScreenWindow(Screen&, Keyboard&);
+			void setWindowIcon(winui::Image i) { window_.setWindowIcon(i); }
 			int_t int60fps( ) { return int_; }
+			void show( ) { window_.show(); }
+			void hide( ) { window_.hide(); }
 		private:
 			void onUpdate(uint);
 			void onRender( );

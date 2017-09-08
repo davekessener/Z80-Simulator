@@ -104,6 +104,9 @@ void CommandWindow::onEvent(const SDL_Event& e)
 		case SDL_WINDOWEVENT:
 			switch(e.window.event)
 			{
+				case SDL_WINDOWEVENT_CLOSE:
+					onClose_();
+					break;
 			}
 			break;
 		case SDL_KEYDOWN:

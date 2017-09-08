@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "z80.h"
+#include "lib.h"
 
 #define MXT_BUFSIZE 80
 
@@ -117,6 +118,7 @@ void Z80::execute(void)
 	if(do_int)
 	{
 		ins = 0xFF; // rst38
+		halted_ = false;
 	}
 	else if(halted_)
 	{
@@ -915,7 +917,7 @@ void Z80::execute(void)
 				    SP = IX;
 					break;
 			    default:
-			        throw std::string("ERR: unknown instuction!");
+					throw lib::stringf("Unknown instruction $DD%02X !", ins);
 			}
 			break;
 		case 0xDE: // sbc a,d8
@@ -995,6 +997,8 @@ void Z80::execute(void)
 				case 0x53: // ld (a16),de
 				    storeW(loadW(), DE);
 					break;
+				case 0x56: // im 1
+					break;
 				case 0x58: // in e,(c)
 				    set_inc_flags(E() = in(C()));
 				    break;
@@ -1041,7 +1045,7 @@ void Z80::execute(void)
 				    SP = loadW(loadW());
 					break;
 				default:
-				    throw std::string("ERR: unknown instruction!");
+					throw lib::stringf("Unknown instruction $ED%02X !", ins);
 			}
 			break;
 		case 0xEE: // xor d8
@@ -1189,7 +1193,7 @@ void Z80::execute(void)
 				    SP = IY;
 					break;
 			    default:
-			        throw std::string("ERR: unknown instuction!");
+					throw lib::stringf("Unknown instruction $FD%02X !", ins);
 			}
 			break;
 		case 0xFE: // cp d8
@@ -1201,7 +1205,7 @@ void Z80::execute(void)
 			call(0x0038);
 			break;
 		default:
-			throw std::string("ERR: not implemted!");
+			throw lib::stringf("Unknown instruction $%02X !", ins);
 	}
 }
 
@@ -1480,6 +1484,11 @@ void Z80::set_flags(uint flags, uint f_pv, uint f_s, uint f_z, uint f_h, uint f_
 	{
 		F() = f_c ? (F() | FLAG_C) : (F() & ~FLAG_C);
 	}
+}
+
+std::string Z80::disassemble(uint16_t addr) const
+{
+	return lib::stringf("0x%02X", ram_[addr]);
 }
 
 }

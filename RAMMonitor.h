@@ -18,6 +18,9 @@ namespace z80
 			RAMMonitor(uint = MXT_VIEWSIZE);
 			void setWatchAddress(uint a) { vOff_ = a & ~0x0F; addr_ = a; }
 			void setAccess(access_fn f) { access_ = f; }
+			void setWindowIcon(winui::Image i) { window_.setWindowIcon(i); }
+			void show( ) { window_.show(); }
+			void hide( ) { window_.hide(); }
 		private:
 			void onUpdate(uint);
 			void onRender( );

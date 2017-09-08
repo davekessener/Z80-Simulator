@@ -64,7 +64,7 @@ namespace z80
 				{
 					type = TokenType::NUMBER;
 					base = 10;
-					token.push_back(c);
+					process(c);
 				}
 				else if(c == '"')
 				{
@@ -114,6 +114,10 @@ namespace z80
 				else if(c == '\\')
 				{
 					inEscape = true;
+				}
+				else
+				{
+					token.push_back(c);
 				}
 				break;
 			case TokenType::NUMBER:

@@ -16,14 +16,17 @@ namespace winui
 	{
 		public:
 		typedef std::function<void(const std::string&)> exec_fn;
+		typedef std::function<void(void)> close_fn;
 
 		public:
 			CommandWindow(const std::string&, const Dimension&, Image, const Dimension&, uint);
 			void setPrompt(const std::string& s) { prompt_ = s; }
 			void setExecutionHandler(exec_fn f) { run_ = f; }
+			void setCloseHandler(close_fn f) { onClose_ = f; }
 			void setBackgroundColor(const Color& c) { window_.setDefaultColor(c); }
 			void setFontColorIndex(uint i) { if(i < nColors_) color_ = i; }
 			void setBlinkSpeed(uint s) { blinkSpeed_ = s; blink_ = 0; }
+			void setWindowIcon(Image i) { window_.setWindowIcon(i); }
 			void println(const std::string&);
 		private:
 			void onRender( );
@@ -38,6 +41,7 @@ namespace winui
 			Window window_;
 			Image charset_;
 			exec_fn run_;
+			close_fn onClose_;
 			std::string prompt_;
 			uint color_, nColors_;
 			Dimension screen_, charsize_;

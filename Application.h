@@ -6,6 +6,7 @@
 #include "StatusPort.h"
 #include "ScreenWindow.h"
 #include "RAMMonitor.h"
+#include "StatusWindow.h"
 #include "CommandWindow.h"
 #include "Timer.h"
 #include "Program.h"
@@ -32,6 +33,10 @@ namespace z80
 			void start(const Tokenizer&);
 			void stop(const Tokenizer&);
 			void step(const Tokenizer&);
+			void help(const Tokenizer&);
+			void set(const Tokenizer&);
+			void show(const Tokenizer&);
+			void hide(const Tokenizer&);
 
 		private:
 			Z80 mCPU;
@@ -40,10 +45,10 @@ namespace z80
 			StatusPort mStatus;
 			ScreenWindow wScreen;
 			RAMMonitor wRAM;
+			StatusWindow wStatus;
 			winui::CommandWindow wTerminal;
 			lib::Schedule mSchedule;
 			std::map<std::string, command_fn> mInstructions;
-			deasm_fn fnDeassemble;
 
 			bool cpu_running;
 	};

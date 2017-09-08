@@ -22,6 +22,7 @@ namespace winui
 			uint getWidth( ) const { return region_.dim.w; }
 			uint getHeight( ) const { return region_.dim.h; }
 			void blit(SDL_Surface *, const Space&);
+			SDL_Surface *getSurface( ) { return surface_; }
 		private:
 			void free( );
 

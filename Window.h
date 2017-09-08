@@ -34,6 +34,7 @@ namespace winui
 			void onRender(render_fn f) { render_ = f; }
 			void onUpdate(update_fn f) { update_ = f; }
 			void onEvent(event_fn f) { event_ = f; }
+			void setWindowIcon(Image);
 			void draw(Image img, const Position& p)
 				{ draw(img, Space(p.x, p.y, img.getWidth(), img.getHeight())); }
 			void draw(Image img, const Space& s)

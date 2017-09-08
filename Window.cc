@@ -63,6 +63,11 @@ void Window::clear(void)
 	SDL_FillRect(surface_, nullptr, SDL_MapRGB(surface_->format, default_.r, default_.g, default_.b));
 }
 
+void Window::setWindowIcon(Image i)
+{
+	SDL_SetWindowIcon(window_, i.getSurface());
+}
+
 void Window::handle(const SDL_Event& e)
 {
 	switch(e.type)

@@ -63,6 +63,7 @@ void Screen::command(uint8_t data)
 			{
 				vram_[i] = 0;
 			}
+			cx_ = cy_ = 0;
 			break;
 		case 0x01: // scroll
 			do_scroll();
