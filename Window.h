@@ -26,7 +26,9 @@ namespace winui
 			void hide( );
 			void show( );
 			bool isHidden( ) const { return hidden_; }
+			bool isMouseOver( ) const { return mouseOver_; }
 			bool hasFocus( ) const { return focus_; }
+			uint getID( ) const { return windowID_; }
 			void update( );
 			void render( );
 			void clear( );
@@ -43,9 +45,9 @@ namespace winui
 		private:
 			SDL_Window *window_;
 			SDL_Surface *surface_;
-			int windowID_;
+			uint windowID_;
 	
-			bool hidden_, focus_;
+			bool hidden_, focus_, mouseOver_;
 			Color default_;
 			render_fn render_;
 			update_fn update_;

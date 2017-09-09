@@ -1,6 +1,7 @@
 #ifndef Z80_LIB_H
 #define Z80_LIB_H
 
+#include <string>
 #include <cstdint>
 #include <cstdarg>
 

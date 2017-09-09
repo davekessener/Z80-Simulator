@@ -13,6 +13,7 @@
 #include "Manager.h"
 #include "Schedule.h"
 #include "Command.h"
+#include "Property.h"
 
 namespace z80
 {
@@ -20,6 +21,7 @@ namespace z80
 	{
 		typedef void (Application::*command_fn)(const Tokenizer&);
 		typedef std::function<std::string(const uint8_t *)> deasm_fn;
+		typedef lib::Property<bool> int_t;
 
 		public:
 			Application( );
@@ -37,6 +39,7 @@ namespace z80
 			void set(const Tokenizer&);
 			void show(const Tokenizer&);
 			void hide(const Tokenizer&);
+			void interrupt(const Tokenizer&);
 
 		private:
 			Z80 mCPU;
@@ -51,6 +54,7 @@ namespace z80
 			std::map<std::string, command_fn> mInstructions;
 
 			bool cpu_running;
+			int_t manualInt;
 	};
 }
 

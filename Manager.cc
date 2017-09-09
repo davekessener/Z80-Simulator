@@ -42,25 +42,11 @@ void Manager::tick(void)
 		{
 			running_ = false;
 		}
-		else if(e.type == SDL_WINDOWEVENT)
-		{
-			int id = e.window.windowID;
-			auto i = windows_.find(id);
-
-			if(i == windows_.end())
-				throw std::string("ERR: window didn't register!");
-
-			i->second->handle(e);
-		}
 		else
 		{
 			for(auto& p : windows_)
 			{
-				if(p.second->hasFocus())
-				{
-					p.second->handle(e);
-					break;
-				}
+				p.second->handle(e);
 			}
 		}
 	}
@@ -86,7 +72,7 @@ void Manager::render(void)
 	}
 }
 
-void Manager::registerWindow(int id, Window& w)
+void Manager::registerWindow(uint id, Window& w)
 {
 	if(windows_.count(id) > 0)
 		throw std::string("ERR: window already exists!");
@@ -94,7 +80,7 @@ void Manager::registerWindow(int id, Window& w)
 	windows_[id] = &w;
 }
 
-void Manager::unregisterWindow(int id)
+void Manager::unregisterWindow(uint id)
 {
 	auto i = windows_.find(id);
 

@@ -30,6 +30,7 @@
 #define CMD_SET "set"
 #define CMD_SHOW "show"
 #define CMD_HIDE "hide"
+#define CMD_INT "int"
 
 #define MXT_ICON_PATH "z80.bmp"
 
@@ -61,8 +62,9 @@ Application::Application(void)
 	mStatus.onInt([this]( ) { mCPU.interrupt(); });
 	mStatus.registerInt(0x10, wScreen.int60fps());
 	mStatus.registerInt(0x20, mKeyboard.keyPressedInt());
+	mStatus.registerInt(0xFF, manualInt);
 
-	wRAM.setAccess([this](uint a) { return (a >= 0 && a < 0x10000) ? mCPU.RAM(a) : -1; });
+	wRAM.setAccess([this](uint16_t a) -> uint8_t& { return mCPU.RAM(a); });
 
 	mSchedule.schedule([this]( ) { if(cpu_running) mCPU.execute(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().tick(); }, 1);
@@ -85,6 +87,7 @@ Application::Application(void)
 	mInstructions[CMD_SET]   = &Application::set;
 	mInstructions[CMD_SHOW]  = &Application::show;
 	mInstructions[CMD_HIDE]  = &Application::hide;
+	mInstructions[CMD_INT]   = &Application::interrupt;
 
 	cpu_running = false;
 }
@@ -174,7 +177,7 @@ void Application::start(const Tokenizer& t)
 
 void Application::stop(const Tokenizer& t)
 {
-	cpu_running = true;
+	cpu_running = false;
 }
 
 void Application::step(const Tokenizer& t)
@@ -301,6 +304,16 @@ void Application::hide(const Tokenizer& t)
 	else
 	{
 		throw std::string("Unknown window '") + s + "'!";
+	}
+}
+
+void Application::interrupt(const Tokenizer& t)
+{
+	manualInt.set(true);
+
+	if(manualInt.get())
+	{
+		throw std::string("Failed to reset interrupt line.");
 	}
 }
 

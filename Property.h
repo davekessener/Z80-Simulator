@@ -14,6 +14,8 @@ namespace lib
 		typedef std::function<void(T&)> listener_fn;
 
 		public:
+			Property( ) : v_(new T), listeners_(new std::vector<listener_fn>) { }
+			Property(const Property<T>&) = default;
 			Property(T *t) : v_(t), listeners_(new std::vector<listener_fn>) { }
 			void listen(listener_fn f) { listeners_->push_back(f); }
 			void set(const T& v) { *v_ = v; for(listener_fn& f : *listeners_) { f(*v_); } }

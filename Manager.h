@@ -20,14 +20,14 @@ namespace winui
 			bool isRunning( ) const { return running_; }
 			void tick( );
 			void render( );
-			void registerWindow(int, Window&);
-			void unregisterWindow(int);
+			void registerWindow(uint, Window&);
+			void unregisterWindow(uint);
 			SDL_Surface *loadImage(const std::string&);
 			void unloadImage(SDL_Surface *);
 			void stop( ) { running_ = false; }
 
 		private:
-			std::map<int, Window*> windows_;
+			std::map<uint, Window*> windows_;
 			std::map<std::string, SDL_Surface*> images_;
 			std::map<SDL_Surface*, std::string> r_images_;
 			std::map<SDL_Surface*, int> imgCounts_;

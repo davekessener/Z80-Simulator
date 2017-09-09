@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "Manager.h"
+#include "lib.h"
 
 namespace winui {
 
@@ -18,6 +19,7 @@ Window::Window(const std::string& title, const Space& s)
 
 	hidden_ = false;
 	focus_ = true;
+	mouseOver_ = false;
 	default_ = Color::WHITE();
 	update_ = [](uint ms) { };
 	event_ = [](const SDL_Event& e) { };
@@ -73,7 +75,7 @@ void Window::handle(const SDL_Event& e)
 	switch(e.type)
 	{
 		case SDL_WINDOWEVENT:
-			switch(e.window.event)
+			if(e.window.windowID == windowID_) switch(e.window.event)
 			{
 				case SDL_WINDOWEVENT_SHOWN:
 					hidden_ = false;
@@ -89,6 +91,13 @@ void Window::handle(const SDL_Event& e)
 					break;
 				case SDL_WINDOWEVENT_CLOSE:
 					hide();
+					break;
+				case SDL_WINDOWEVENT_ENTER:
+					mouseOver_ = true;
+//					SDL_RaiseWindow(window_);
+					break;
+				case SDL_WINDOWEVENT_LEAVE:
+					mouseOver_ = false;
 					break;
 			}
 	}

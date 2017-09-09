@@ -99,10 +99,10 @@ void CommandWindow::onUpdate(uint ms)
 
 void CommandWindow::onEvent(const SDL_Event& e)
 {
-	switch(e.type)
+	if(window_.hasFocus()) switch(e.type)
 	{
 		case SDL_WINDOWEVENT:
-			switch(e.window.event)
+			if(e.window.windowID == window_.getID()) switch(e.window.event)
 			{
 				case SDL_WINDOWEVENT_CLOSE:
 					onClose_();

@@ -24,6 +24,8 @@ namespace z80
 		{
 			if(type == TokenType::STRING)
 			{
+				type = TokenType::UNKNOWN;
+
 				throw std::string("Nonterminated string!");
 			}
 			else if(type == TokenType::UNKNOWN)

@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "z80.h"
+#include "Disassemble.h"
 #include "lib.h"
 
 #define MXT_BUFSIZE 80
@@ -1236,7 +1237,7 @@ void Z80::addHL(uint16_t v, bool use_c)
 void Z80::addA(uint8_t v, bool use_c)
 {
 	uint cf = (use_c && (F() & FLAG_C)) ? 1 : 0;
-	uint16_t r = A() + (uint16_t)v + cf;
+	uint16_t r = A() + (v & 0xFF) + cf;
 	uint8_t t = (A() & 0x0F) + (v & 0x0F) + cf;
 
 	set_flags(FLAG_ALL, 
@@ -1245,7 +1246,7 @@ void Z80::addA(uint8_t v, bool use_c)
 		(r & 0xFF) == 0,
 		t & FLAG_H,
 		0,
-		r & 0x100);
+		(r & 0x80) != (A() & 0x80));
 	A() = r & 0xFF;
 }
 
@@ -1488,7 +1489,7 @@ void Z80::set_flags(uint flags, uint f_pv, uint f_s, uint f_z, uint f_h, uint f_
 
 std::string Z80::disassemble(uint16_t addr) const
 {
-	return lib::stringf("0x%02X", ram_[addr]);
+	return z80::disassemble(&ram_[addr]).literal;
 }
 
 }

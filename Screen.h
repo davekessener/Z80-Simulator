@@ -13,6 +13,8 @@ namespace z80
 			static const uint32_t ROWS = 60;
 			static const uint8_t SCREEN_ID = 0x2C;
 
+// out (PORT_SCREEN_STATUS),0x5F
+
 		public:
 			Screen( );
 			~Screen( );
