@@ -52,6 +52,16 @@ void ScreenWindow::onRender(void)
 
 void ScreenWindow::onEvent(const SDL_Event& e)
 {
+
+	if(window_.hasFocus()) switch(e.type)
+	{
+		case SDL_KEYDOWN:
+			keyboard_->press(e.key.keysym.sym, true);
+			break;
+		case SDL_KEYUP:
+			keyboard_->press(e.key.keysym.sym, false);
+			break;
+	}
 }
 
 void ScreenWindow::drawChar(uint x, uint y, char c, bool blink)

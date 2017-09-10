@@ -11,6 +11,14 @@ Screen::~Screen(void)
 {
 }
 
+void Screen::reset(void)
+{
+	cx_ = cy_ = 0;
+	status_ = 0;
+	id_ = 0;
+	timerEn_ = false;
+}
+
 void Screen::write(uint8_t port, uint8_t data)
 {
 	switch(port)
@@ -101,7 +109,7 @@ void Screen::writeToVRAM(uint8_t data)
 		case 8: // backspace
 			if(cx_ > 0) --cx_;
 			break;
-		case 13: // newline
+		case '\n': // newline
 			cx_ = 0;
 			if(cy_ < ROWS-1)
 				++cy_;

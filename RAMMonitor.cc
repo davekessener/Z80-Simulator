@@ -3,6 +3,7 @@
 
 #include "RAMMonitor.h"
 #include "lib.h"
+#include "Disassemble.h"
 
 #define MXT_BLINK_F 1000
 
@@ -103,7 +104,7 @@ void RAMMonitor::onRender(void)
 	auto nl = [this, &x, &y]( )
 	{
 		x = 0;
-		++y;
+		if(y < (uint) (WIN_HEIGHT + viewsize_ / 0x10 - 1)) ++y;
 	};
 
 	auto outCh = [this, &x, &y, &nl, &color, cx, cy](uint8_t ch, bool highlight, bool inv)
@@ -174,14 +175,15 @@ void RAMMonitor::onRender(void)
 	
 	if(msg_.size() > WIN_WIDTH) msg_ = "ERR: Msg too large!";
 
-	x = WIN_WIDTH - msg_.size();
-	color = 4;
-	outStr(msg_, false);
+	std::string message = msg_.empty() ? disassemble(&access_(addr_)).literal : msg_;
+	color = msg_.empty() ? 0 : 4;
+	x = WIN_WIDTH - message.size();
+	outStr(message, false);
 
 	x = 0;
 	color = 0;
 
-	outStr(renderFooder_().c_str(), false);
+	outStr(renderFooder_(), false);
 }
 
 void RAMMonitor::onEventDefault(const SDL_Event& e)

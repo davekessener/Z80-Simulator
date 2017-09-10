@@ -2,6 +2,12 @@
 
 namespace z80 {
 
+void StatusPort::reset(void)
+{
+	queue_.clear();
+	idRead_ = 0;
+}
+
 void StatusPort::write(uint8_t port, uint8_t data)
 {
 }

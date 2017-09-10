@@ -35,6 +35,7 @@ namespace z80
 			const_iterator end( ) const { return buf_.cend(); }
 			size_t size( ) const { return buf_.size(); }
 			const Token& operator[](size_t i) const { return buf_.at(i); }
+
 		private:
 			void process(char);
 			void push(TokenType, const std::string&, uint);
@@ -44,6 +45,8 @@ namespace z80
 		private:
 			vec_t buf_;
 	};
+
+	std::string toString(const TokenType&);
 }
 
 #endif

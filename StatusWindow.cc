@@ -102,8 +102,6 @@ void StatusWindow::onRender(void)
 		}
 	};
 
-	if(screen.size() != 0*WIN_W) throw lib::stringf("%d:%u", 0, screen.size());
-
 	ADD(CHAR_H_RD);
 	printN(CHAR_H_LR, 3);
 	ADD(CHAR_H_LR_S_D);
@@ -114,8 +112,6 @@ void StatusWindow::onRender(void)
 	printN(CHAR_H_LR, 14);
 	ADD(CHAR_H_LD);
 
-	if(screen.size() != 1*WIN_W) throw lib::stringf("%d:%u", 1, screen.size());
-
 	ADD(CHAR_H_UD);
 	printR("PC", cpu_->getPC());
 	ADD(' ');
@@ -123,8 +119,6 @@ void StatusWindow::onRender(void)
 	ADD(' ');
 	printR("SP", cpu_->getSP());
 	ADD(CHAR_H_UD);
-
-	if(screen.size() != 2*WIN_W) throw lib::stringf("%d:%u", 2, screen.size());
 
 	ADD(CHAR_H_UD);
 	printR("AF", cpu_->getAF());
@@ -134,8 +128,6 @@ void StatusWindow::onRender(void)
 	printR("AF'", cpu_->getAFp());
 	ADD(CHAR_H_UD);
 
-	if(screen.size() != 3*WIN_W) throw lib::stringf("%d:%u", 3, screen.size());
-
 	ADD(CHAR_H_UD);
 	printR("BC", cpu_->getBC());
 	ADD(' ');
@@ -143,8 +135,6 @@ void StatusWindow::onRender(void)
 	ADD(' ');
 	printR("BC'", cpu_->getBCp());
 	ADD(CHAR_H_UD);
-
-	if(screen.size() != 4*WIN_W) throw lib::stringf("%d:%u", 4, screen.size());
 
 	ADD(CHAR_H_UD);
 	printR("DE", cpu_->getDE());
@@ -154,8 +144,6 @@ void StatusWindow::onRender(void)
 	printR("DE'", cpu_->getDEp());
 	ADD(CHAR_H_UD);
 
-	if(screen.size() != 5*WIN_W) throw lib::stringf("%d:%u", 5, screen.size());
-
 	ADD(CHAR_H_UD);
 	printR("HL", cpu_->getHL());
 	ADD(' ');
@@ -164,8 +152,6 @@ void StatusWindow::onRender(void)
 	printR("HL'", cpu_->getHLp());
 	ADD(CHAR_H_UD);
 
-	if(screen.size() != 6*WIN_W) throw lib::stringf("%d:%u", 6, screen.size());
-
 	ADD(CHAR_H_UD);
 	printR("IX", cpu_->getIX());
 	ADD(' ');
@@ -173,8 +159,6 @@ void StatusWindow::onRender(void)
 	ADD(' ');
 	printR("IY", cpu_->getIY());
 	ADD(CHAR_H_UD);
-
-	if(screen.size() != 7*WIN_W) throw lib::stringf("%d:%u", 7, screen.size());
 
 	ADD(CHAR_H_RUD);
 	printN(CHAR_H_LR, 3);
@@ -186,13 +170,9 @@ void StatusWindow::onRender(void)
 	printN(CHAR_H_LR, 14);
 	ADD(CHAR_H_LUD);
 
-	if(screen.size() != 8*WIN_W) throw lib::stringf("%d:%u", 8, screen.size());
-
 	ADD(CHAR_H_UD);
-	printS(lib::stringf(" @$%04X: %s", cpu_->getPC(), cpu_->disassemble(cpu_->getPC()).c_str()), WIN_W-2);
+	printS(lib::stringf(" @$%04X [0x%02X] %s", cpu_->getPC(), cpu_->RAM(cpu_->getPC()), cpu_->disassemble(cpu_->getPC()).c_str()), WIN_W-2);
 	ADD(CHAR_H_UD);
-
-	if(screen.size() != 9*WIN_W) throw lib::stringf("%d:%u", 9, screen.size());
 
 	ADD(CHAR_H_RUD);
 	printN(CHAR_H_LR, 7);
@@ -202,8 +182,6 @@ void StatusWindow::onRender(void)
 		printN(CHAR_H_LR, 3);
 		ADD(i == 7 ? CHAR_H_LUD : CHAR_H_LR_S_D);
 	}
-
-	if(screen.size() != 10*WIN_W) throw lib::stringf("%d:%u", 10, screen.size());
 
 	ADD(CHAR_H_UD);
 	printS("", 7);
@@ -225,8 +203,6 @@ void StatusWindow::onRender(void)
 	printS(" C ", 3);
 	ADD(CHAR_H_UD);
 
-	if(screen.size() != 11*WIN_W) throw lib::stringf("%d:%u", 11, screen.size());
-
 	ADD(CHAR_H_UD);
 	printS(" Flags", 7);
 	ADD(CHAR_H_UD_S_R);
@@ -235,8 +211,6 @@ void StatusWindow::onRender(void)
 		printN(CHAR_S_LR, 3);
 		ADD(i == 7 ? CHAR_H_UD_S_L : CHAR_S_LRUD);
 	}
-
-	if(screen.size() != 12*WIN_W) throw lib::stringf("%d:%u", 12, screen.size());
 
 	ADD(CHAR_H_UD);
 	printS("", 7);
@@ -258,8 +232,6 @@ void StatusWindow::onRender(void)
 	printS(lib::stringf(" %d ", cpu_->getFlagC()), 3);
 	ADD(CHAR_H_UD);
 
-	if(screen.size() != 13*WIN_W) throw lib::stringf("%d:%u", 13, screen.size());
-
 	ADD(CHAR_H_RU);
 	printN(CHAR_H_LR, 7);
 	ADD(CHAR_H_LRU);
@@ -267,11 +239,6 @@ void StatusWindow::onRender(void)
 	{
 		printN(CHAR_H_LR, 3);
 		ADD(i == 7 ? CHAR_H_LU : CHAR_H_LR_S_U);
-	}
-
-	if(screen.size() != WIN_H*WIN_W)
-	{
-		throw lib::stringf("u done goofed %u", screen.size());
 	}
 
 	window_.clear();

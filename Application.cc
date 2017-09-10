@@ -1,9 +1,11 @@
+#include <algorithm>
+
 #include "Application.h"
 #include "Image.h"
 #include "lib.h"
 
-#define MXT_TERMINAL_TITLE "Z80 Simulation Terminal"
-#define MXT_TERMINAL_PROMPT "$> "
+#define MXT_TERMINAL_TITLE "Z80 Terminal"
+#define MXT_TERMINAL_PROMPT "> "
 #define MXT_COLS 80
 #define MXT_ROWS 20
 #define MXT_CHARSET_PATH "charset.bmp"
@@ -31,6 +33,7 @@
 #define CMD_SHOW "show"
 #define CMD_HIDE "hide"
 #define CMD_INT "int"
+#define CMD_BREAK "break"
 
 #define MXT_ICON_PATH "z80.bmp"
 
@@ -44,29 +47,23 @@ using winui::Color;
 Application::Application(void)
 	: wScreen(mScreen, mKeyboard)
 	, wStatus(mCPU)
+	, wDeASM(mCPU)
 	, wTerminal(MXT_TERMINAL_TITLE, Dimension(MXT_COLS, MXT_ROWS), Image(MXT_CHARSET_PATH), Dimension(MXT_CHAR_W, MXT_CHAR_H), MXT_CHARSET_COLORSPACE)
 {
-	Image icon(MXT_ICON_PATH);
-
-	wScreen.setWindowIcon(icon);
-	wStatus.setWindowIcon(icon);
-	wRAM.setWindowIcon(icon);
-	wTerminal.setWindowIcon(icon);
-
-	mCPU.reset();
+	reset();
 
 	mCPU.registerPeripheral(0x00, mStatus);
 	mCPU.registerPeripheral(0x10, mScreen);
 	mCPU.registerPeripheral(0x20, mKeyboard);
 
 	mStatus.onInt([this]( ) { mCPU.interrupt(); });
-	mStatus.registerInt(0x10, wScreen.int60fps());
-	mStatus.registerInt(0x20, mKeyboard.keyPressedInt());
+	mStatus.registerInt(0x01, wScreen.int60fps());
+	mStatus.registerInt(0x02, mKeyboard.keyPressedInt());
 	mStatus.registerInt(0xFF, manualInt);
 
 	wRAM.setAccess([this](uint16_t a) -> uint8_t& { return mCPU.RAM(a); });
 
-	mSchedule.schedule([this]( ) { if(cpu_running) mCPU.execute(); }, 1);
+	mSchedule.schedule([this]( ) { tick(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().tick(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().render(); }, 1000000/60);
 
@@ -88,6 +85,24 @@ Application::Application(void)
 	mInstructions[CMD_SHOW]  = &Application::show;
 	mInstructions[CMD_HIDE]  = &Application::hide;
 	mInstructions[CMD_INT]   = &Application::interrupt;
+	mInstructions[CMD_BREAK] = &Application::setBreak;
+
+#define MAKE_SET(R) \
+std::make_pair( \
+TokenType::NUMBER, \
+[this](const Tokenizer::Token& t) { \
+mCPU.set##R (t.value); \
+wTerminal.println(lib::stringf("Setting " #R " to $%04X", t.value)); \
+})
+	mSetFunctions["pc"] = MAKE_SET(PC);
+	mSetFunctions["sp"] = MAKE_SET(SP);
+	mSetFunctions["af"] = MAKE_SET(AF);
+	mSetFunctions["bc"] = MAKE_SET(BC);
+	mSetFunctions["de"] = MAKE_SET(DE);
+	mSetFunctions["hl"] = MAKE_SET(HL);
+	mSetFunctions["ix"] = MAKE_SET(IX);
+	mSetFunctions["iy"] = MAKE_SET(IY);
+#undef MAKE_SET
 
 	cpu_running = false;
 }
@@ -134,6 +149,35 @@ void Application::execute(const std::string& cmd)
 	}
 }
 
+void Application::tick(void)
+{
+	if(cpu_running)
+	{
+		for(const auto& p : breakPoints)
+		{
+			if(mCPU.getPC() == p)
+			{
+				cpu_running = false;
+				wTerminal.println(lib::stringf("BREAK @$%04X: %s", p, mCPU.disassemble(p)));
+				return;
+			}
+		}
+
+		mCPU.execute();
+	}
+}
+
+void Application::reset(void)
+{
+	mCPU.reset();
+	mScreen.reset();
+	mKeyboard.reset();
+	mStatus.reset();
+	cpu_running = false;
+}
+
+// # --------------------------------------------------------------------------- 
+
 void Application::quit(const Tokenizer& t)
 {
 	wTerminal.println("Shutting down ...");
@@ -165,8 +209,7 @@ void Application::load(const Tokenizer& t)
 void Application::reset(const Tokenizer& t)
 {
 	wTerminal.println("Resetting CPU.");
-	mCPU.reset();
-	cpu_running = false;
+	reset();
 }
 
 void Application::start(const Tokenizer& t)
@@ -199,58 +242,26 @@ void Application::help(const Tokenizer& t)
 
 void Application::set(const Tokenizer& t)
 {
-	if(t.size() != 3 || t[1].type != TokenType::LITERAL || t[2].type != TokenType::NUMBER)
+	if(t.size() != 3 || t[1].type != TokenType::LITERAL)
 	{
-		throw std::string("SET R $V");
+		throw std::string("SET ID VALUE");
 	}
 
 	std::string r(t[1].token);
-	uint16_t v(t[2].value & 0xFFFF);
+	Tokenizer::Token tk(t[2]);
 
-	if(r == "pc")
+	auto i = mSetFunctions.find(r);
+
+	if(i == mSetFunctions.end())
 	{
-		mCPU.setPC(v);
-		wTerminal.println(lib::stringf("Set PC to $%04X", v));
+		throw std::string("Unknown ID '" + r + "'!");
 	}
-	else if(r == "sp")
+	else if(i->second.first != tk.type)
 	{
-		mCPU.setSP(v);
-		wTerminal.println(lib::stringf("Set SP to $%04X", v));
+		throw std::string("Invalid value type; expected " + toString(i->second.first) + ", not " + toString(tk.type) + "!");
 	}
-	else if(r == "af")
-	{
-		mCPU.setAF(v);
-		wTerminal.println(lib::stringf("Set AF to $%04X", v));
-	}
-	else if(r == "bc")
-	{
-		mCPU.setBC(v);
-		wTerminal.println(lib::stringf("Set BC to $%04X", v));
-	}
-	else if(r == "de")
-	{
-		mCPU.setDE(v);
-		wTerminal.println(lib::stringf("Set DE to $%04X", v));
-	}
-	else if(r == "hl")
-	{
-		mCPU.setHL(v);
-		wTerminal.println(lib::stringf("Set HL to $%04X", v));
-	}
-	else if(r == "ix")
-	{
-		mCPU.setIX(v);
-		wTerminal.println(lib::stringf("Set IX to $%04X", v));
-	}
-	else if(r == "iy")
-	{
-		mCPU.setIY(v);
-		wTerminal.println(lib::stringf("Set IY to $%04X", v));
-	}
-	else
-	{
-		throw lib::stringf("Unknown register '%s'!", r.c_str());
-	}
+
+	i->second.second(tk);
 }
 
 void Application::show(const Tokenizer& t)
@@ -314,6 +325,51 @@ void Application::interrupt(const Tokenizer& t)
 	if(manualInt.get())
 	{
 		throw std::string("Failed to reset interrupt line.");
+	}
+}
+
+void Application::setBreak(const Tokenizer& t)
+{
+	if(t.size() != 2)
+	{
+		throw std::string("BREAK CLEAR|LIST|$ADDR");
+	}
+
+	if(t[1].type == TokenType::NUMBER)
+	{
+		uint16_t p = t[1].value;
+		auto i = std::find(breakPoints.begin(), breakPoints.end(), p);
+
+		if(i == breakPoints.end())
+		{
+			breakPoints.push_back(p);
+			wTerminal.println(lib::stringf("Added breakpoint @$%04X", p));
+		}
+		else
+		{
+			breakPoints.erase(i);
+			wTerminal.println(lib::stringf("Removed breakpoint @$%04X", p));
+		}
+	}
+	else if(t[1].type == TokenType::LITERAL)
+	{
+		if(t[1].token == "clear")
+		{
+			wTerminal.println(lib::stringf("Removed all %u breakpoints.", breakPoints.size()));
+			breakPoints.clear();
+		}
+		else if(t[1].token == "list")
+		{
+			wTerminal.println("Breakpoints:");
+			for(const auto& p : breakPoints)
+			{
+				wTerminal.println(lib::stringf("@$%04X", p));
+			}
+		}
+		else
+		{
+			throw std::string("Invalid argument '" + t[1].token + "' to command 'BREAK'!");
+		}
 	}
 }
 

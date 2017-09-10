@@ -5,17 +5,49 @@
 #define MXT_KEY_EXTENDED 0xE0
 #define MXT_KEY_BREAK 0xF0
 
+#define MXT_SHIFT 0x01
+#define MXT_CTRL 0x02
+#define MXT_ALT 0x04
+
+#define KEY_PUP 0x80
+#define KEY_PDOWN 0x81
+#define KEY_PAUSE 0x82
+#define KEY_HOME 0x83
+#define KEY_INSERT 0x84
+#define KEY_BACKSPACE 0x08
+#define KEY_ESCAPE 0x1B
+#define KEY_DELETE 0x85
+#define KEY_UP 0x86
+#define KEY_DOWN 0x87
+#define KEY_LEFT 0x88
+#define KEY_RIGHT 0x89
+#define KEY_END 0x8A
+#define KEY_F1 0x8B
+#define KEY_F2 0x8C
+#define KEY_F3 0x8D
+#define KEY_F4 0x8E
+#define KEY_F5 0x8F
+#define KEY_F6 0x90
+#define KEY_F7 0x91
+#define KEY_F8 0x92
+#define KEY_F9 0x93
+#define KEY_F10 0x94
+#define KEY_F11 0x95
+#define KEY_F12 0x96
+
 namespace z80 {
 
 std::map<uint, uint8_t> Keyboard::mSimple;
 std::map<uint, uint8_t> Keyboard::mExtended;
+std::map<uint, uint8_t> Keyboard::mASCII;
+std::map<uint, uint8_t> Keyboard::mASCIIshifted;
 
 Keyboard::Keyboard(void)
 	: intLine_(new bool)
 {
     static bool initialized = false;
 
-	intLine_.set(false);
+	reset();
 
 	if(!initialized)
 	{
@@ -26,25 +58,83 @@ Keyboard::Keyboard(void)
 
 void Keyboard::press(uint key, bool down)
 {
-	auto i = mSimple.find(key);
+	if(mode_ == MODE_RAW)
+	{
+		auto i = mSimple.find(key);
 
-	if(i != mSimple.end())
-	{
-	    if(!down) buf_.push_back(MXT_KEY_BREAK);
-		buf_.push_back(i->second);
-		intLine_.set(true);
+		if(i != mSimple.end())
+		{
+		    if(!down) buf_.push_back(MXT_KEY_BREAK);
+			buf_.push_back(i->second);
+			intLine_.set(true);
+		}
+		else if((i = mExtended.find(key)) != mExtended.end())
+		{
+		    buf_.push_back(MXT_KEY_EXTENDED);
+			if(!down) buf_.push_back(MXT_KEY_BREAK);
+			buf_.push_back(i->second);
+			intLine_.set(true);
+		}
 	}
-	else if((i = mExtended.find(key)) != mExtended.end())
+	else if(mode_ == MODE_POLL || mode_ == MODE_TEXT)
 	{
-	    buf_.push_back(MXT_KEY_EXTENDED);
-		if(!down) buf_.push_back(MXT_KEY_BREAK);
-		buf_.push_back(i->second);
-		intLine_.set(true);
+		if(key == SDLK_LSHIFT || key == SDLK_RSHIFT)
+		{
+			shift_ = down;
+		}
+		else if(key == SDLK_LCTRL || key == SDLK_RCTRL)
+		{
+			ctrl_ = down;
+		}
+		else if(key == SDLK_LALT || key == SDLK_RALT)
+		{
+			alt_ = down;
+		}
+		else
+		{
+			uint8_t aKey = getASCII(key);
+
+			if(aKey != 0)
+			{
+				if(mode_ == MODE_TEXT)
+				{
+					if(down)
+					{
+						buf_.push_back(aKey);
+						intLine_.set(true);
+					}
+				}
+				else if(mode_ == MODE_POLL)
+				{
+					if(down)
+					{
+						pressed_.push_back(aKey);
+					}
+					else
+					{
+						auto i = std::find(pressed_.begin(), pressed_.end(), aKey);
+						if(i != pressed_.end()) pressed_.erase(i);
+					}
+				}
+			}
+		}
 	}
 }
 
 void Keyboard::write(uint8_t port, uint8_t data)
 {
+	switch(port)
+	{
+		case 0x00:
+			mode_ = data;
+			break;
+		case 0x01:
+			if(mode_ == MODE_POLL)
+			{
+				poll_ = data;
+			}
+			break;
+	}
 }
 
 uint8_t Keyboard::read(uint8_t port)
@@ -57,17 +147,50 @@ uint8_t Keyboard::read(uint8_t port)
 		    r = buf_.size();
 			break;
 		case 0x01:
-			if(!buf_.empty())
+			if(mode_ == MODE_POLL)
 			{
-		    	r = buf_.front();
-				buf_.pop_front();
+				r =   poll_ == 0 
+					? (pressed_.empty() ? 1 : 0) 
+					: (std::find(pressed_.begin(), pressed_.end(), poll_) == pressed_.end() ? 0 : 1);
 			}
+			else
+			{
+				if(!buf_.empty())
+				{
+		    		r = buf_.front();
+					buf_.pop_front();
+				}
+			}
+			break;
+		case 0x02:
+			r = (shift_ ? MXT_SHIFT : 0) | (ctrl_ ? MXT_CTRL : 0) | (alt_ ? MXT_ALT : 0);
 			break;
 		case 0x0F:
 			break;
 	}
 
 	return r;
+}
+
+uint8_t Keyboard::getASCII(uint key) const
+{
+	auto i = mASCIIshifted.find(key);
+
+	if(i == mASCIIshifted.end() || !shift_)
+	{
+		i = mASCII.find(key);
+	}
+
+	return i == mASCII.end() ? 0 : i->second;
+}
+
+void Keyboard::reset(void)
+{
+	buf_.clear();
+	pressed_.clear();
+	mode_ = MODE_POLL;
+	shift_ = ctrl_ = alt_ = false;
+	intLine_.set(false);
 }
 
 void Keyboard::init(void)
@@ -170,6 +293,130 @@ void Keyboard::init(void)
 	mExtended[SDLK_DOWN] = 0x72;
 	mExtended[SDLK_RIGHT] = 0x74;
 	mExtended[SDLK_KP_DIVIDE] = 0x4A;
+
+	mASCIIshifted[SDLK_a] = 'A';
+	mASCIIshifted[SDLK_b] = 'B';
+	mASCIIshifted[SDLK_c] = 'C';
+	mASCIIshifted[SDLK_d] = 'D';
+	mASCIIshifted[SDLK_e] = 'E';
+	mASCIIshifted[SDLK_f] = 'F';
+	mASCIIshifted[SDLK_g] = 'G';
+	mASCIIshifted[SDLK_h] = 'H';
+	mASCIIshifted[SDLK_i] = 'I';
+	mASCIIshifted[SDLK_j] = 'J';
+	mASCIIshifted[SDLK_k] = 'K';
+	mASCIIshifted[SDLK_l] = 'L';
+	mASCIIshifted[SDLK_m] = 'M';
+	mASCIIshifted[SDLK_n] = 'N';
+	mASCIIshifted[SDLK_o] = 'O';
+	mASCIIshifted[SDLK_p] = 'P';
+	mASCIIshifted[SDLK_q] = 'Q';
+	mASCIIshifted[SDLK_r] = 'R';
+	mASCIIshifted[SDLK_s] = 'S';
+	mASCIIshifted[SDLK_t] = 'T';
+	mASCIIshifted[SDLK_u] = 'U';
+	mASCIIshifted[SDLK_v] = 'V';
+	mASCIIshifted[SDLK_w] = 'W';
+	mASCIIshifted[SDLK_x] = 'X';
+	mASCIIshifted[SDLK_y] = 'Y';
+	mASCIIshifted[SDLK_z] = 'Z';
+	mASCIIshifted[SDLK_0] = ')';
+	mASCIIshifted[SDLK_1] = '!';
+	mASCIIshifted[SDLK_2] = '@';
+	mASCIIshifted[SDLK_3] = '#';
+	mASCIIshifted[SDLK_4] = '$';
+	mASCIIshifted[SDLK_5] = '%';
+	mASCIIshifted[SDLK_6] = '^';
+	mASCIIshifted[SDLK_7] = '&';
+	mASCIIshifted[SDLK_8] = '*';
+	mASCIIshifted[SDLK_9] = '(';
+	mASCIIshifted[SDLK_EQUALS] = '+';
+	mASCIIshifted[SDLK_QUOTE] = '"';
+	mASCIIshifted[SDLK_SLASH] = '?';
+	mASCIIshifted[SDLK_COMMA] = '<';
+	mASCIIshifted[SDLK_BACKQUOTE] = '~';
+	mASCIIshifted[SDLK_LEFTBRACKET] = '{';
+	mASCIIshifted[SDLK_RIGHTBRACKET] = '}';
+	mASCIIshifted[SDLK_MINUS] = '_';
+	mASCIIshifted[SDLK_PERIOD] = '>';
+	mASCIIshifted[SDLK_SEMICOLON] = ':';
+	mASCIIshifted[SDLK_BACKSLASH] = '|';
+
+	mASCII[SDLK_a] = 'a';
+	mASCII[SDLK_b] = 'b';
+	mASCII[SDLK_c] = 'c';
+	mASCII[SDLK_d] = 'd';
+	mASCII[SDLK_e] = 'e';
+	mASCII[SDLK_f] = 'f';
+	mASCII[SDLK_g] = 'g';
+	mASCII[SDLK_h] = 'h';
+	mASCII[SDLK_i] = 'i';
+	mASCII[SDLK_j] = 'j';
+	mASCII[SDLK_k] = 'k';
+	mASCII[SDLK_l] = 'l';
+	mASCII[SDLK_m] = 'm';
+	mASCII[SDLK_n] = 'n';
+	mASCII[SDLK_o] = 'o';
+	mASCII[SDLK_p] = 'p';
+	mASCII[SDLK_q] = 'q';
+	mASCII[SDLK_r] = 'r';
+	mASCII[SDLK_s] = 's';
+	mASCII[SDLK_t] = 't';
+	mASCII[SDLK_u] = 'u';
+	mASCII[SDLK_v] = 'v';
+	mASCII[SDLK_w] = 'w';
+	mASCII[SDLK_x] = 'x';
+	mASCII[SDLK_y] = 'y';
+	mASCII[SDLK_z] = 'z';
+	mASCII[SDLK_0] = '0';
+	mASCII[SDLK_1] = '1';
+	mASCII[SDLK_2] = '2';
+	mASCII[SDLK_3] = '3';
+	mASCII[SDLK_4] = '4';
+	mASCII[SDLK_5] = '5';
+	mASCII[SDLK_6] = '6';
+	mASCII[SDLK_7] = '7';
+	mASCII[SDLK_8] = '8';
+	mASCII[SDLK_9] = '9';
+	mASCII[SDLK_EQUALS] = '=';
+	mASCII[SDLK_QUOTE] = '\'';
+	mASCII[SDLK_SLASH] = '/';
+	mASCII[SDLK_COMMA] = ',';
+	mASCII[SDLK_BACKQUOTE] = '`';
+	mASCII[SDLK_LEFTBRACKET] = '[';
+	mASCII[SDLK_RIGHTBRACKET] = ']';
+	mASCII[SDLK_MINUS] = '-';
+	mASCII[SDLK_PERIOD] = '.';
+	mASCII[SDLK_SEMICOLON] = ';';
+	mASCII[SDLK_BACKSLASH] = '\\';
+
+	mASCII[SDLK_RETURN] = '\n';
+	mASCII[SDLK_PAGEUP] = KEY_PUP;
+	mASCII[SDLK_PAGEDOWN] = KEY_PDOWN;
+	mASCII[SDLK_PAUSE] = KEY_PAUSE;
+	mASCII[SDLK_HOME] = KEY_HOME;
+	mASCII[SDLK_INSERT] = KEY_INSERT;
+	mASCII[SDLK_BACKSPACE] = KEY_BACKSPACE;
+	mASCII[SDLK_SPACE] = ' ';
+	mASCII[SDLK_ESCAPE] = KEY_ESCAPE;
+	mASCII[SDLK_DELETE] = KEY_DELETE;
+	mASCII[SDLK_UP] = KEY_UP;
+	mASCII[SDLK_DOWN] = KEY_DOWN;
+	mASCII[SDLK_LEFT] = KEY_LEFT;
+	mASCII[SDLK_RIGHT] = KEY_RIGHT;
+	mASCII[SDLK_END] = KEY_END;
+	mASCII[SDLK_F1] = KEY_F1;
+	mASCII[SDLK_F2] = KEY_F2;
+	mASCII[SDLK_F3] = KEY_F3;
+	mASCII[SDLK_F4] = KEY_F4;
+	mASCII[SDLK_F5] = KEY_F5;
+	mASCII[SDLK_F6] = KEY_F6;
+	mASCII[SDLK_F7] = KEY_F7;
+	mASCII[SDLK_F8] = KEY_F8;
+	mASCII[SDLK_F9] = KEY_F9;
+	mASCII[SDLK_F10] = KEY_F10;
+	mASCII[SDLK_F11] = KEY_F11;
+	mASCII[SDLK_F12] = KEY_F12;
 }
 
 }

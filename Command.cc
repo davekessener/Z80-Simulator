@@ -244,5 +244,18 @@ namespace z80
 
 		return true;
 	}
+
+	std::string toString(const TokenType& t)
+	{
+		switch(t)
+		{
+			case TokenType::UNKNOWN: return "Unknown";
+			case TokenType::LITERAL: return "Literal";
+			case TokenType::NUMBER: return "Number";
+			case TokenType::STRING: return "String";
+		}
+
+		throw std::string("Invalid tokentype!");
+	}
 }
 

@@ -31,6 +31,7 @@ namespace z80
 			uint8_t getCursorX( ) const { return cx_; }
 			uint8_t getCursorY( ) const { return cy_; }
 			uint8_t getChar(uint x, uint y) const { return vram_[x + y * COLS]; }
+			void reset( );
 		private:
 			void command(uint8_t);
 			void do_scroll( );

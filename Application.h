@@ -1,12 +1,16 @@
 #ifndef Z80_APPLICATION_H
 #define Z80_APPLICATION_H
 
+#include <vector>
+#include <map>
+
 #include "z80.h"
 #include "Screen.h"
 #include "StatusPort.h"
 #include "ScreenWindow.h"
 #include "RAMMonitor.h"
 #include "StatusWindow.h"
+#include "DeassemblerWindow.h"
 #include "CommandWindow.h"
 #include "Timer.h"
 #include "Program.h"
@@ -21,6 +25,7 @@ namespace z80
 	{
 		typedef void (Application::*command_fn)(const Tokenizer&);
 		typedef std::function<std::string(const uint8_t *)> deasm_fn;
+		typedef std::function<void(const Tokenizer::Token&)> set_fn;
 		typedef lib::Property<bool> int_t;
 
 		public:
@@ -29,6 +34,9 @@ namespace z80
 			void run( );
 			void execute(const std::string&);
 		private:
+			void tick( );
+			void reset( );
+
 			void quit(const Tokenizer&);
 			void load(const Tokenizer&);
 			void reset(const Tokenizer&);
@@ -40,6 +48,7 @@ namespace z80
 			void show(const Tokenizer&);
 			void hide(const Tokenizer&);
 			void interrupt(const Tokenizer&);
+			void setBreak(const Tokenizer&);
 
 		private:
 			Z80 mCPU;
@@ -49,12 +58,15 @@ namespace z80
 			ScreenWindow wScreen;
 			RAMMonitor wRAM;
 			StatusWindow wStatus;
+			DeassemblerWindow wDeASM;
 			winui::CommandWindow wTerminal;
 			lib::Schedule mSchedule;
 			std::map<std::string, command_fn> mInstructions;
+			std::map<std::string, std::pair<TokenType, set_fn>> mSetFunctions;
 
 			bool cpu_running;
 			int_t manualInt;
+			std::vector<uint16_t> breakPoints;
 	};
 }
 

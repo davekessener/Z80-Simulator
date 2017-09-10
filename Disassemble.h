@@ -10,7 +10,7 @@ namespace z80
 	struct Instruction
 	{
 		std::string literal;
-		const uint8_t *next;
+		uint size;
 	};
 
 	Instruction disassemble(const uint8_t *);

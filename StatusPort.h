@@ -21,10 +21,11 @@ namespace z80
 			uint8_t read(uint8_t);
 			void registerInt(uint8_t, int_t);
 			void onInt(int_fn f) { onInt_ = f; }
+			void reset( );
 		private:
 			std::deque<uint8_t> queue_;
 			int_fn onInt_;
-			uint idRead_;
+			uint idRead_ = 0;
 	};
 }
 

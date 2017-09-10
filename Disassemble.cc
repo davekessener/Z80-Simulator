@@ -8,12 +8,12 @@ Instruction disassemble(const uint8_t *ins)
 
 	using lib::stringf;
 
-	auto a = [&p](const std::string& v) -> Instruction
+	auto a = [&p, ins](const std::string& v) -> Instruction
 	{
 		Instruction i;
 
 		i.literal = v;
-		i.next = p;
+		i.size = p - ins;
 
 		return i;
 	};
