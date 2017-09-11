@@ -36,6 +36,7 @@ namespace z80
 		private:
 			void tick( );
 			void reset( );
+			void toggleBreakpoint(uint16_t);
 
 			void quit(const Tokenizer&);
 			void load(const Tokenizer&);
@@ -67,6 +68,7 @@ namespace z80
 			bool cpu_running;
 			int_t manualInt;
 			std::vector<uint16_t> breakPoints;
+			uint32_t skipBP_;
 	};
 }
 

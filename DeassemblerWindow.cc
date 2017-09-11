@@ -12,6 +12,8 @@
 #define CHAR_H 12
 #define CHAR_COLORSPACE 8
 
+#define MXT_ERROR "ERR"
+
 namespace z80 {
 
 using winui::Space;
@@ -28,7 +30,8 @@ DeassemblerWindow::DeassemblerWindow(Z80& cpu, uint lc)
 	window_.onRender([this]( ) { onRender(); });
 	window_.onEvent([this](const SDL_Event& e) { onEvent(e); });
 
-	addr_ = 0;
+	pc_ = sel_ = addr_ = 0;
+	followPC_ = false;
 }
 
 DeassemblerWindow::~DeassemblerWindow(void)
@@ -41,10 +44,14 @@ void DeassemblerWindow::onUpdate(uint ms)
 
 void DeassemblerWindow::onRender(void)
 {
-	if(followPC_) addr_ = cpu_->getPC();
+	if(followPC_ && pc_ != cpu_->getPC())
+	{
+		pc_ = addr_ = cpu_->getPC();
+	}
 
 	uint16_t a = addr_;
 	static const std::string header(MXT_HEADER);
+	std::string fooder(followPC_ ? "Following PC" : "");
 
 	window_.clear();
 
@@ -62,11 +69,24 @@ void DeassemblerWindow::onRender(void)
 			drawChar(x, 1, Character::H_LR);
 			drawChar(x, 2 + cLines_, Character::H_LR);
 		}
+
+		drawChar(x, 3 + cLines_, x >= fooder.size() ? ' ' : fooder.at(x));
 	}
 
 	for(uint i = 0 ; i < cLines_ ; ++i)
 	{
-		Instruction de(disassemble(&cpu_->RAM(a)));
+		Instruction de;
+
+		if(errors_[a] == 0)
+		{
+			de = disassemble(&cpu_->RAM(a));
+		}
+		else
+		{
+			de.literal = MXT_ERROR;
+			de.size = errors_[a];
+		}
+
 		renderLine(i + 2, a, de);
 		a += de.size;
 	}
@@ -74,6 +94,32 @@ void DeassemblerWindow::onRender(void)
 
 void DeassemblerWindow::onEvent(const SDL_Event& e)
 {
+	if(window_.hasFocus()) switch(e.type)
+	{
+		case SDL_KEYDOWN:
+			switch(e.key.keysym.sym)
+			{
+				case SDLK_f:
+					if((followPC_ = !followPC_))
+					{
+						pc_ = addr_ = cpu_->getPC();
+					}
+					break;
+			}
+	}
+
+	if(window_.isMouseOver()) switch(e.type)
+	{
+		case SDL_MOUSEBUTTONDOWN:
+			switch(e.button.button)
+			{
+			}
+			break;
+		case SDL_MOUSEWHEEL:
+			scroll((SDL_GetModState() & KMOD_SHIFT ? 10 : 1) * 
+				e.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? -e.wheel.y : e.wheel.y);
+			break;
+	}
 }
 
 void DeassemblerWindow::drawChar(uint x, uint y, uint8_t ch, uint c, bool inv)
@@ -85,8 +131,9 @@ void DeassemblerWindow::drawChar(uint x, uint y, uint8_t ch, uint c, bool inv)
 
 void DeassemblerWindow::renderLine(uint y, uint16_t addr, const Instruction& ins)
 {
-	bool isPC = cpu_->getPC() >= addr && cpu_->getPC() < addr + ins.size;
-	uint c = isPC ? (followPC_ ? COLOR_RED : COLOR_CYAN) : COLOR_BLACK;
+	bool isPC = pc_ >= addr && pc_ < addr + ins.size;
+	bool isSel = sel_ >= addr && sel_ < addr + ins.size;
+	uint c = isPC ? COLOR_RED : isSel ? COLOR_CYAN : COLOR_BLACK;
 
 	std::string raw;
 
@@ -95,11 +142,24 @@ void DeassemblerWindow::renderLine(uint y, uint16_t addr, const Instruction& ins
 		raw += lib::stringf("%02X ", cpu_->RAM(addr + i));
 	}
 
-	std::string s(lib::stringf("$%04X | %- 11s %s", addr, raw.c_str(), ins.literal.c_str()));
+	std::string s(lib::stringf(
+		"$%04X%c| %- 12s %s", addr, checkBreak_(addr) ? '*' : ' ', raw.c_str(), ins.literal.c_str()));
 
 	for(uint x = 0 ; x < WIN_W ; ++x)
 	{
-		drawChar(x, y, x == MXT_VLINE ? Character::S_UD : (x >= s.size() ? ' ' : s.at(x)), c, isPC);
+		drawChar(x, y, x == MXT_VLINE ? Character::S_UD : (x >= s.size() ? ' ' : s.at(x)), c, isPC || isSel);
+	}
+}
+
+void DeassemblerWindow::scroll(int dy)
+{
+	while(dy < 0)
+	{
+		break;
+	}
+	while(dy > 0)
+	{
+		break;
 	}
 }
 

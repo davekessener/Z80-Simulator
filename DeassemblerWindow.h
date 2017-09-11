@@ -10,13 +10,16 @@
 #include "Image.h"
 #include "Disassemble.h"
 
-#define MXT_LINECOUNT 60
+#define MXT_LINECOUNT 59
 
 namespace z80
 {
 	class DeassemblerWindow
 	{
 		typedef std::map<uint16_t, std::string> map_t;
+		typedef std::function<bool(uint16_t)> check_break_fn;
+		typedef std::function<void(uint16_t)> set_break_fn;
+		typedef std::pair<check_break_fn, set_break_fn> break_t;
 
 		static const uint COLOR_BLACK   = 0x00; // ---
 		static const uint COLOR_BLUE    = 0x01; // --B
@@ -33,21 +36,26 @@ namespace z80
 			void setAddress(uint16_t a) { addr_ = a; }
 			void setLabelMap(const map_t& m) { map_ = m; }
 			void setFollowPC(bool v) { followPC_ = v; }
+			void setBreakPointCallback(break_t p) { checkBreak_ = p.first; setBreak_ = p.second; }
 		private:
 			void onUpdate(uint);
 			void onRender( );
 			void onEvent(const SDL_Event&);
 			void drawChar(uint, uint, uint8_t, uint = COLOR_BLACK, bool = false);
 			void renderLine(uint, uint16_t, const Instruction&);
+			void scroll(int);
 
 		private:
 			winui::Window window_;
 			winui::Image charset_;
 			map_t map_;
 			uint cLines_;
-			uint16_t addr_;
+			uint16_t pc_, addr_, sel_;
 			Z80 *cpu_;
 			bool followPC_;
+			check_break_fn checkBreak_;
+			set_break_fn setBreak_;
+			std::map<uint16_t, uint> errors_;
 	};
 }
 

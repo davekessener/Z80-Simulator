@@ -63,6 +63,10 @@ Application::Application(void)
 
 	wRAM.setAccess([this](uint16_t a) -> uint8_t& { return mCPU.RAM(a); });
 
+	wDeASM.setBreakPointCallback(std::make_pair(
+		[this](uint16_t a) -> bool { return std::find(breakPoints.begin(), breakPoints.end(), a) != breakPoints.end(); },
+		[this](uint16_t a) -> void { toggleBreakpoint(a); }));
+
 	mSchedule.schedule([this]( ) { tick(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().tick(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().render(); }, 1000000/60);
@@ -153,12 +157,16 @@ void Application::tick(void)
 {
 	if(cpu_running)
 	{
+		uint32_t skip = skipBP_;
+
+		skipBP_ = 0x10000;
+
 		for(const auto& p : breakPoints)
 		{
-			if(mCPU.getPC() == p)
+			if(mCPU.getPC() != skip && mCPU.getPC() == p)
 			{
 				cpu_running = false;
-				wTerminal.println(lib::stringf("BREAK @$%04X: %s", p, mCPU.disassemble(p)));
+				wTerminal.println(lib::stringf("BREAK @$%04X: %s", p, mCPU.disassemble(p).c_str()));
 				return;
 			}
 		}
@@ -174,6 +182,22 @@ void Application::reset(void)
 	mKeyboard.reset();
 	mStatus.reset();
 	cpu_running = false;
+}
+
+void Application::toggleBreakpoint(uint16_t p)
+{
+	auto i = std::find(breakPoints.begin(), breakPoints.end(), p);
+
+	if(i == breakPoints.end())
+	{
+		breakPoints.push_back(p);
+		wTerminal.println(lib::stringf("Added breakpoint @$%04X", p));
+	}
+	else
+	{
+		breakPoints.erase(i);
+		wTerminal.println(lib::stringf("Removed breakpoint @$%04X", p));
+	}
 }
 
 // # --------------------------------------------------------------------------- 
@@ -216,6 +240,7 @@ void Application::start(const Tokenizer& t)
 {
 	wTerminal.println(lib::stringf("Start running @$%04X", mCPU.getPC()));
 	cpu_running = true;
+	skipBP_ = mCPU.getPC();
 }
 
 void Application::stop(const Tokenizer& t)
@@ -337,19 +362,7 @@ void Application::setBreak(const Tokenizer& t)
 
 	if(t[1].type == TokenType::NUMBER)
 	{
-		uint16_t p = t[1].value;
-		auto i = std::find(breakPoints.begin(), breakPoints.end(), p);
-
-		if(i == breakPoints.end())
-		{
-			breakPoints.push_back(p);
-			wTerminal.println(lib::stringf("Added breakpoint @$%04X", p));
-		}
-		else
-		{
-			breakPoints.erase(i);
-			wTerminal.println(lib::stringf("Removed breakpoint @$%04X", p));
-		}
+		toggleBreakpoint(t[1].value);
 	}
 	else if(t[1].type == TokenType::LITERAL)
 	{
