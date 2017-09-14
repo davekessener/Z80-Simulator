@@ -10,6 +10,7 @@
 #define CHARSET_PATH "charset.bmp"
 #define CHAR_W 8
 #define CHAR_H 12
+#define CHAR_COLORSPACE 8
 
 #define CHAR_SOLID 128
 #define CHAR_HOLLOW 139
@@ -56,18 +57,16 @@ namespace z80 {
 
 using winui::Space;
 using winui::Position;
+using winui::Dimension;
 using winui::Color;
+using winui::CharacterWindow;
+using winui::Image;
 
 StatusWindow::StatusWindow(Z80& cpu)
-	: window_(WIN_TITLE, Space(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_W*CHAR_W, WIN_H*CHAR_H))
-	, charset_(CHARSET_PATH)
+	: CharacterWindow(WIN_TITLE, Position::CENTER(), Dimension(WIN_W, WIN_H), Image(CHARSET_PATH), Dimension(CHAR_W, CHAR_H), CHAR_COLORSPACE)
 	, cpu_(&cpu)
 {
-	window_.setDefaultColor(Color::WHITE());
-
-	window_.onUpdate([this](uint ms) { onUpdate(ms); });
-	window_.onRender([this]( ) { onRender(); });
-	window_.onEvent([this](const SDL_Event& e) { onEvent(e); });
+	setDefaultColor(Color::WHITE());
 }
 
 void StatusWindow::onUpdate(uint ms)
@@ -241,15 +240,13 @@ void StatusWindow::onRender(void)
 		ADD(i == 7 ? CHAR_H_LU : CHAR_H_LR_S_U);
 	}
 
-	window_.clear();
+	clear();
 
 	for(uint y = 0 ; y < WIN_H ; ++y)
 	{
 		for(uint x = 0 ; x < WIN_W ; ++x)
 		{
-			uint c = screen[x + y * WIN_W];
-			Space s(c * CHAR_W, COLOR_BLACK * CHAR_H, CHAR_W, CHAR_H);
-			window_.draw(charset_.region(s), Position(x * CHAR_W, y * CHAR_H));
+			renderChar(Position(x, y), screen[x + y * WIN_W], COLOR_BLACK, false);
 		}
 	}
 

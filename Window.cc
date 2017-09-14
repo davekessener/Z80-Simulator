@@ -21,8 +21,6 @@ Window::Window(const std::string& title, const Space& s)
 	focus_ = true;
 	mouseOver_ = false;
 	default_ = Color::WHITE();
-	update_ = [](uint ms) { };
-	event_ = [](const SDL_Event& e) { };
 	time_.reset();
 	last_ = 0;
 }
@@ -48,14 +46,14 @@ void Window::update(void)
 {
 	uint t = time_.elapsed().count() + last_;
 
-	update_(t / 1000);
+	onUpdate(t / 1000);
 
 	last_ = t % 1000;
 }
 
 void Window::render(void)
 {
-	render_();
+	onRender();
 
 	SDL_UpdateWindowSurface(window_);
 }
@@ -102,7 +100,7 @@ void Window::handle(const SDL_Event& e)
 			}
 	}
 
-	event_(e);
+	onEvent(e);
 }
 
 }

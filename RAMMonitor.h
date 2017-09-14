@@ -1,18 +1,19 @@
 #ifndef Z80_RAMMONITOR_H
 #define Z80_RAMMONITOR_H
 
+#include <functional>
 #include <map>
 #include <deque>
 #include <stack>
 
-#include "Window.h"
+#include "CharacterWindow.h"
 #include "Image.h"
 
 #define MXT_VIEWSIZE 0x200
 
 namespace z80
 {
-	class RAMMonitor
+	class RAMMonitor : public winui::CharacterWindow
 	{
 		enum class State
 		{
@@ -34,14 +35,13 @@ namespace z80
 
 		public:
 			RAMMonitor(uint = MXT_VIEWSIZE);
-			void setWatchAddress(uint a) { vOff_ = a & ~0x0F; addr_ = a; }
+			virtual ~RAMMonitor( );
+			void setAddress(uint);
 			void setAccess(access_fn f) { access_ = f; }
-			void setWindowIcon(winui::Image i) { window_.setWindowIcon(i); }
-			void show( ) { window_.show(); }
-			void hide( ) { window_.hide(); }
 		private:
 			void onUpdate(uint);
 			void onRender( );
+			void onEvent(const SDL_Event&);
 			void onEventDefault(const SDL_Event&);
 			void onEventGoto(const SDL_Event&);
 			void onEventEditing(const SDL_Event&);
@@ -58,8 +58,6 @@ namespace z80
 			void setGotoCursor( );
 
 		private:
-			winui::Window window_;
-			winui::Image charset_;
 			uint16_t viewsize_, addr_, vOff_;
 			access_fn access_;
 			render_fn renderFooder_;
@@ -71,7 +69,6 @@ namespace z80
 			uint8_t aBuf_[4];
 			int aBufPos_;
 			int cx_, cy_;
-			uint blink_;
 	};
 }
 

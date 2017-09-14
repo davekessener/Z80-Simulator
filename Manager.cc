@@ -85,7 +85,7 @@ void Manager::unregisterWindow(uint id)
 	auto i = windows_.find(id);
 
 	if(i == windows_.end())
-		throw std::string("ERR: no suck window!");
+		throw std::string("ERR: no such window!");
 	
 	windows_.erase(i);
 }

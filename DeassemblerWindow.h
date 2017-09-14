@@ -1,12 +1,13 @@
 #ifndef Z80_DEASSEMBLERWINDOW_H
 #define Z80_DEASSEMBLERWINDOW_H
 
+#include <functional>
 #include <string>
 #include <map>
 
 #include "lib.h"
 #include "Z80.h"
-#include "Window.h"
+#include "CharacterWindow.h"
 #include "Image.h"
 #include "Disassemble.h"
 
@@ -14,7 +15,7 @@
 
 namespace z80
 {
-	class DeassemblerWindow
+	class DeassemblerWindow : public winui::CharacterWindow
 	{
 		typedef std::map<uint16_t, std::string> map_t;
 		typedef std::function<bool(uint16_t)> check_break_fn;
@@ -32,7 +33,7 @@ namespace z80
 
 		public:
 			DeassemblerWindow(Z80&, uint = MXT_LINECOUNT);
-			~DeassemblerWindow( );
+			virtual ~DeassemblerWindow( );
 			void setAddress(uint16_t a) { addr_ = a; }
 			void setLabelMap(const map_t& m) { map_ = m; }
 			void setFollowPC(bool v) { followPC_ = v; }
@@ -41,13 +42,10 @@ namespace z80
 			void onUpdate(uint);
 			void onRender( );
 			void onEvent(const SDL_Event&);
-			void drawChar(uint, uint, uint8_t, uint = COLOR_BLACK, bool = false);
 			void renderLine(uint, uint16_t, const Instruction&);
 			void scroll(int);
 
 		private:
-			winui::Window window_;
-			winui::Image charset_;
 			map_t map_;
 			uint cLines_;
 			uint16_t pc_, addr_, sel_;
@@ -55,7 +53,6 @@ namespace z80
 			bool followPC_;
 			check_break_fn checkBreak_;
 			set_break_fn setBreak_;
-			std::map<uint16_t, uint> errors_;
 	};
 }
 

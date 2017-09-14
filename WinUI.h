@@ -1,6 +1,8 @@
 #ifndef LIB_WINUI_H
 #define LIB_WINUI_H
 
+#include <SDL.h>
+
 #include <algorithm>
 #include <cstdint>
 
@@ -17,6 +19,8 @@ namespace winui
 	{
 		Position( ) : x(0), y(0) { }
 		Position(int x_, int y_) : x(x_), y(y_) { }
+
+		static Position CENTER( ) { return Position(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED); }
 
 		int x, y;
 	};

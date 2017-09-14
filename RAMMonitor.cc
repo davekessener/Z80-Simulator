@@ -22,33 +22,18 @@ using winui::Position;
 using winui::Dimension;
 using winui::Space;
 using winui::Color;
+using winui::CharacterWindow;
+using winui::Image;
 
 RAMMonitor::RAMMonitor(uint viewsize)
-	: window_(WIN_TITLE, Space(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_WIDTH*CHAR_W, (WIN_HEIGHT+(viewsize+15)/16)*CHAR_H))
-	, charset_(CHARSET_PATH)
+	: CharacterWindow(WIN_TITLE, Position::CENTER(), Dimension(WIN_WIDTH, WIN_HEIGHT + (viewsize+15)/16), Image(CHARSET_PATH), Dimension(CHAR_W, CHAR_H), CHAR_COLORSPACE)
 	, viewsize_(viewsize)
 	, addr_(0)
 	, vOff_(0)
 {
-	window_.setDefaultColor(Color::WHITE());
+	setDefaultColor(Color::WHITE());
 
-	window_.onUpdate([this](uint ms) { onUpdate(ms); });
-	window_.onRender([this]( ) { onRender(); });
-	window_.onEvent([this](const SDL_Event& e)
-	{
-		switch(state_)
-		{
-			case State::DEFAULT:
-				onEventDefault(e);
-				break;
-			case State::EDITING:
-				onEventEditing(e);
-				break;
-			case State::GOTO:
-				onEventGoto(e);
-				break;
-		}
-	});
+	enableBlink(false);
 
 	state_ = State::DEFAULT;
 
@@ -85,17 +70,31 @@ RAMMonitor::RAMMonitor(uint viewsize)
 	key_[SDLK_f] = 0x0F;
 
 	cx_ = cy_ = -1;
-	blink_ = 0;
+}
+
+RAMMonitor::~RAMMonitor(void)
+{
+}
+
+void RAMMonitor::setAddress(uint a)
+{
+	if(a + viewsize_ >= 0x10000)
+	{
+		a = 0x10000 - viewsize_;
+	}
+
+	vOff_ = a & ~0xF;
+	addr_ = a;
 }
 
 void RAMMonitor::onUpdate(uint ms)
 {
-	blink_ = (blink_ + ms) % MXT_BLINK_F;
+	CharacterWindow::onUpdate(ms);
 }
 
 void RAMMonitor::onRender(void)
 {
-	window_.clear();
+	clear();
 
 	uint x = 0, y = 0;
 	const uint cx = 4 + 3 + (addr_ % 16) * 3, cy = 2 + addr_ / 16 - vOff_ / 16;
@@ -125,14 +124,7 @@ void RAMMonitor::onRender(void)
 			}
 		}
 
-		if(cx_ >= 0 && cy_ >= 0 && (uint)cx_ == x && (uint)cy_ == y)
-		{
-			if(blink_ < MXT_BLINK_F / 2) inv = !inv;
-		}
-
-		Space s(ch * CHAR_W, (c + (inv ? CHAR_COLORSPACE : 0)) * CHAR_H, CHAR_W, CHAR_H);
-
-		window_.draw(charset_.region(s), Position(x * CHAR_W, y * CHAR_H));
+		renderChar(Position(x, y), ch, c, inv);
 
 		if(++x == WIN_WIDTH) nl();
 	};
@@ -186,9 +178,25 @@ void RAMMonitor::onRender(void)
 	outStr(renderFooder_(), false);
 }
 
+void RAMMonitor::onEvent(const SDL_Event& e)
+{
+	switch(state_)
+	{
+		case State::DEFAULT:
+			onEventDefault(e);
+			break;
+		case State::EDITING:
+			onEventEditing(e);
+			break;
+		case State::GOTO:
+			onEventGoto(e);
+			break;
+	}
+}
+
 void RAMMonitor::onEventDefault(const SDL_Event& e)
 {
-	if(window_.hasFocus())
+	if(hasFocus())
 	{
 		switch(e.type)
 		{
@@ -251,15 +259,15 @@ void RAMMonitor::onEventDefault(const SDL_Event& e)
 						state_ = State::EDITING;
 						buf_ = access_(addr_);
 						access_(addr_) = (buf_ & 0x0F) | (key_[e.key.keysym.sym] << 4);
-						cx_ = 7 + (addr_ % 0x10) * 3 + 1;
-						cy_ = 2 + (addr_ - vOff_) / 0x10;
+						updateCursor(Position(7 + (addr_ % 0x10) * 3 + 1, 2 + (addr_ - vOff_) / 0x10));
+						enableBlink(true);
 						break;
 				}
 				break;
 		}
 	}
 
-	if(window_.isMouseOver())
+	if(isMouseOver())
 	{
 		switch(e.type)
 		{
@@ -281,7 +289,7 @@ void RAMMonitor::onEventDefault(const SDL_Event& e)
 
 void RAMMonitor::onEventGoto(const SDL_Event& e)
 {
-	if(window_.hasFocus()) switch(e.type)
+	if(hasFocus()) switch(e.type)
 	{
 		case SDL_KEYDOWN:
 			switch(e.key.keysym.sym)
@@ -343,13 +351,13 @@ void RAMMonitor::onEventGoto(const SDL_Event& e)
 	}
 	else
 	{
-		cx_ = cy_ = -1;
+		enableBlink(false);
 	}
 }
 
 void RAMMonitor::onEventEditing(const SDL_Event& e)
 {
-	if(window_.hasFocus()) switch(e.type)
+	if(hasFocus()) switch(e.type)
 	{
 		case SDL_KEYDOWN:
 			switch(e.key.keysym.sym)
@@ -385,7 +393,7 @@ void RAMMonitor::onEventEditing(const SDL_Event& e)
 
 	if(state_ != State::EDITING)
 	{
-		cx_ = cy_ = -1;
+		enableBlink(false);
 	}
 }
 
@@ -479,8 +487,8 @@ void RAMMonitor::gotoAddr(uint16_t addr)
 
 void RAMMonitor::setGotoCursor(void)
 {
-	cx_ = 6 + aBufPos_;
-	cy_ = 2 + viewsize_ / 0x10 + 1;
+	enableBlink(true);
+	updateCursor(Position(6 + aBufPos_, 2 + viewsize_ / 0x10 + 1));
 }
 
 }

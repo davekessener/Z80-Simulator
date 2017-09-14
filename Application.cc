@@ -30,10 +30,9 @@
 #define CMD_STEP "step"
 #define CMD_HELP "help"
 #define CMD_SET "set"
-#define CMD_SHOW "show"
-#define CMD_HIDE "hide"
 #define CMD_INT "int"
 #define CMD_BREAK "break"
+#define CMD_OPEN "open"
 
 #define MXT_ICON_PATH "z80.bmp"
 
@@ -47,7 +46,6 @@ using winui::Color;
 Application::Application(void)
 	: wScreen(mScreen, mKeyboard)
 	, wStatus(mCPU)
-	, wDeASM(mCPU)
 	, wTerminal(MXT_TERMINAL_TITLE, Dimension(MXT_COLS, MXT_ROWS), Image(MXT_CHARSET_PATH), Dimension(MXT_CHAR_W, MXT_CHAR_H), MXT_CHARSET_COLORSPACE)
 {
 	reset();
@@ -61,19 +59,14 @@ Application::Application(void)
 	mStatus.registerInt(0x02, mKeyboard.keyPressedInt());
 	mStatus.registerInt(0xFF, manualInt);
 
-	wRAM.setAccess([this](uint16_t a) -> uint8_t& { return mCPU.RAM(a); });
-
-	wDeASM.setBreakPointCallback(std::make_pair(
-		[this](uint16_t a) -> bool { return std::find(breakPoints.begin(), breakPoints.end(), a) != breakPoints.end(); },
-		[this](uint16_t a) -> void { toggleBreakpoint(a); }));
 
 	mSchedule.schedule([this]( ) { tick(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().tick(); }, 1);
 	mSchedule.schedule([]( ) { Manager::instance().render(); }, 1000000/60);
 
 	wTerminal.setPrompt(MXT_TERMINAL_PROMPT);
-	wTerminal.setBackgroundColor(Color::BLACK());
-	wTerminal.setFontColorIndex(MXT_COLOR_GREEN);
+	wTerminal.setDefaultColor(Color::BLACK());
+	wTerminal.setFontColor(MXT_COLOR_GREEN);
 	wTerminal.setExecutionHandler([this](const std::string& cmd) { execute(cmd); });
 	wTerminal.setCloseHandler([]( ) { Manager::instance().stop(); });
 
@@ -86,10 +79,9 @@ Application::Application(void)
 	mInstructions[CMD_STEP]  = &Application::step;
 	mInstructions[CMD_HELP]  = &Application::help;
 	mInstructions[CMD_SET]   = &Application::set;
-	mInstructions[CMD_SHOW]  = &Application::show;
-	mInstructions[CMD_HIDE]  = &Application::hide;
 	mInstructions[CMD_INT]   = &Application::interrupt;
 	mInstructions[CMD_BREAK] = &Application::setBreak;
+	mInstructions[CMD_OPEN] = &Application::open;
 
 #define MAKE_SET(R) \
 std::make_pair( \
@@ -173,6 +165,8 @@ void Application::tick(void)
 
 		mCPU.execute();
 	}
+
+	closeAllHidden(wWindows);
 }
 
 void Application::reset(void)
@@ -182,6 +176,24 @@ void Application::reset(void)
 	mKeyboard.reset();
 	mStatus.reset();
 	cpu_running = false;
+}
+
+void Application::createRAMMonitor(uint16_t a, uint s)
+{
+	RAMMonitor *wRAM = new RAMMonitor(s < 0x100 ? 0x100 : s);
+	wRAM->setAccess([this](uint16_t a) -> uint8_t& { return mCPU.RAM(a); });
+	wRAM->setAddress(a);
+	wWindows.push_back(wRAM);
+}
+
+void Application::createDisassembler(uint16_t a)
+{
+	DeassemblerWindow *wDeASM = new DeassemblerWindow(mCPU);
+	wDeASM->setBreakPointCallback(std::make_pair(
+		[this](uint16_t a) -> bool { return std::find(breakPoints.begin(), breakPoints.end(), a) != breakPoints.end(); },
+		[this](uint16_t a) -> void { toggleBreakpoint(a); }));
+	wDeASM->setAddress(a);
+	wWindows.push_back(wDeASM);
 }
 
 void Application::toggleBreakpoint(uint16_t p)
@@ -289,60 +301,6 @@ void Application::set(const Tokenizer& t)
 	i->second.second(tk);
 }
 
-void Application::show(const Tokenizer& t)
-{
-	if(t.size() != 2 || t[1].type != TokenType::LITERAL)
-	{
-		throw std::string("SHOW <SCREEN|RAM|STATUS>");
-	}
-
-	std::string s(t[1].token);
-
-	if(s == "screen")
-	{
-		wScreen.show();
-	}
-	else if(s == "ram")
-	{
-		wRAM.show();
-	}
-	else if(s == "status")
-	{
-		wStatus.show();
-	}
-	else
-	{
-		throw std::string("Unknown window '") + s + "'!";
-	}
-}
-
-void Application::hide(const Tokenizer& t)
-{
-	if(t.size() != 2 || t[1].type != TokenType::LITERAL)
-	{
-		throw std::string("HIDE <SCREEN|RAM|STATUS>");
-	}
-
-	std::string s(t[1].token);
-
-	if(s == "screen")
-	{
-		wScreen.hide();
-	}
-	else if(s == "ram")
-	{
-		wRAM.hide();
-	}
-	else if(s == "status")
-	{
-		wStatus.hide();
-	}
-	else
-	{
-		throw std::string("Unknown window '") + s + "'!";
-	}
-}
-
 void Application::interrupt(const Tokenizer& t)
 {
 	manualInt.set(true);
@@ -383,6 +341,52 @@ void Application::setBreak(const Tokenizer& t)
 		{
 			throw std::string("Invalid argument '" + t[1].token + "' to command 'BREAK'!");
 		}
+	}
+}
+
+void Application::open(const Tokenizer& t)
+{
+	if(t.size() < 2 || t[1].type != TokenType::LITERAL)
+	{
+		throw std::string("OPEN SCREEN|RAM|DIS [OPTIONS]");
+	}
+
+	if(t[1].token == "screen")
+	{
+		wScreen.show();
+	}
+	else if(t[1].token == "ram")
+	{
+		uint16_t a = 0;
+		uint s = 0x200;
+
+		if(t.size() >= 3 && t[2].type == TokenType::NUMBER)
+		{
+			a = t[2].value;
+		}
+
+		if(t.size() >= 4 && t[3].type == TokenType::NUMBER)
+		{
+			s = t[3].value;
+		}
+
+		createRAMMonitor(a, s);
+
+	}
+	else if(t[1].token == "dis")
+	{
+		uint16_t a = 0;
+
+		if(t.size() >= 3 && t[2].type == TokenType::NUMBER)
+		{
+			a = t[2].value;
+		}
+
+		createDisassembler(a);
+	}
+	else
+	{
+		throw std::string("Unknown window '" + t[1].token + "'.");
 	}
 }
 
