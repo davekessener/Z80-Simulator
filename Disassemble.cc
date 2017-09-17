@@ -18,8 +18,10 @@ Instruction disassemble(const uint8_t *ins)
 		return i;
 	};
 
+	auto inc = [&p]( ) -> uint8_t { return *p++; };
+
 #define WORD ((uint16_t *) (p += 2))[-1]
-#define BYTE *p++
+#define BYTE inc()
 #define OFF (int)((char) BYTE)
 	switch(*p++)
 	{

@@ -101,6 +101,8 @@ wTerminal.println(lib::stringf("Setting " #R " to $%04X", t.value)); \
 #undef MAKE_SET
 
 	cpu_running = false;
+
+	wLog.println("Z80 Simulation Environment");
 }
 
 Application::~Application(void)

@@ -68,7 +68,6 @@ namespace z80
 			stack_t undo_, redo_;
 			uint8_t aBuf_[4];
 			int aBufPos_;
-			int cx_, cy_;
 	};
 }
 

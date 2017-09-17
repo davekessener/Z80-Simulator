@@ -68,8 +68,6 @@ RAMMonitor::RAMMonitor(uint viewsize)
 	key_[SDLK_d] = 0x0D;
 	key_[SDLK_e] = 0x0E;
 	key_[SDLK_f] = 0x0F;
-
-	cx_ = cy_ = -1;
 }
 
 RAMMonitor::~RAMMonitor(void)

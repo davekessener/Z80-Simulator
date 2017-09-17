@@ -15,6 +15,8 @@ CharacterWindow::CharacterWindow(const std::string& title, Position p, Dimension
 	blinkspeed_ = MXT_BLINKSPEED;
 	color_ = 0;
 	en_blink_ = blinkIndependently_ = false;
+	wrapLines_ = true;
+	highlighted_ = false;
 }
 
 void CharacterWindow::onUpdate(uint ms)
@@ -48,8 +50,10 @@ void CharacterWindow::renderString(Position p, const std::string& s)
 		{
 			if(i1 == i2) return;
 
-			renderChar(Position(x, y), *i1++, color_, false);
+			renderChar(Position(x, y), *i1++, color_, highlighted_);
 		}
+		
+		if(!wrapLines_) break;
 
 		x = 0;
 	}

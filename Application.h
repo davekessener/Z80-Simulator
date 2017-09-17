@@ -10,6 +10,7 @@
 #include "ScreenWindow.h"
 #include "RAMMonitor.h"
 #include "StatusWindow.h"
+#include "LogWindow.h"
 #include "DeassemblerWindow.h"
 #include "CommandWindow.h"
 #include "Timer.h"
@@ -78,6 +79,7 @@ namespace z80
 			StatusPort mStatus;
 			ScreenWindow wScreen;
 			StatusWindow wStatus;
+			LogWindow wLog;
 			winui::CommandWindow wTerminal;
 			lib::Schedule mSchedule;
 			std::map<std::string, command_fn> mInstructions;

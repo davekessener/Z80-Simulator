@@ -1,0 +1,209 @@
+#include "AssemblerWindow.h"
+
+#define WIN_TITLE "Z80 Editor"
+#define WIN_W 100
+#define WIN_H 100
+#define CHARSET_PATH "charset.bmp"
+#define CHAR_W 8
+#define CHAR_H 12
+#define COLORSPACE 8
+
+#define COLOR_BLACK 0
+#define COLOR_CYAN 3
+#define COLOR_RED 4
+
+namespace z80 {
+
+Assembler::Assembler(exec_fn f, log_fn l)
+	: CharacterWindow(WIN_TITLE, Dimension(WIN_W, WIN_H), Image(CHARSET_PATH), Dimension(CHAR_W, CHAR_H), COLORSPACE)
+	, exec_(f)
+	, log_(l)
+{
+	state_ = State::DEFAULT;
+
+	enableBlink(true);
+	setLineWrap(false);
+}
+
+void AssemblerWindow::onUpdate(uint ms)
+{
+	CharacterWindow::onUpdate(ms);
+}
+
+void AssemblerWindow::onRender(void)
+{
+	Dimension size = getSize();
+	buffer_t *buf = &buffers_.at(curBuf_);
+
+	for(uint i = bufDispOff_, x = 0 ; i < buffers_.size() ; ++i)
+	{
+		if(x > 0)
+		{
+			renderString(Position(x, 0), " | ");
+			if((x += 3) >= size.w) break;
+		}
+
+		setFontColor(i == curBuf_ ? COLOR_CYAN, COLOR_BLACK);
+		setHighlight(i == curBuf_);
+
+		std::string tabname = getTabName(buffers_[i].file);
+		renderString(Position(x, 0), tabname);
+		if((x += tabname.size()) >= size.w) break;
+	}
+
+	setFontColor(COLOR_BLACK);
+	setHightlight(false);
+
+	for(uint x = 0 ; x < size.w ; ++x)
+	{
+		renderString(Position(x, 1), "-");
+	}
+
+	for(uint y = 2 ; y < size.h - 2 ; ++y)
+	{
+		uint l = buf->dy + y - 2;
+
+		if(l >= buf->content.size())
+		{
+			renderString(Position(0, y), "~");
+		}
+		else
+		{
+			renderLine(y, buf->content[l], l, dx);
+		}
+	}
+
+	for(uint x = 0 ; x < size.w ; ++x)
+	{
+		renderString(Position(x, size.h - 2), "-");
+	}
+
+	renderFooder();
+}
+
+// # ---------------------------------------------------------------------------
+
+void AssemblerWindow::onEvent(const SDL_Event& e)
+{
+	switch(state_)
+	{
+		case State::DEFAULT:
+			onEventDefault(e);
+			break;
+		case State::EDITING:
+			onEventEditing(e);
+			break;
+		case State::COMMAND:
+			onEventCommand(e);
+			break;
+	}
+}
+void AssemblerWindow::onEventDefault(const SDL_Event& e)
+{
+}
+
+void AssemblerWindow::onEventEditing(const SDL_Event& e)
+{
+}
+
+void AssemblerWindow::onEventCommand(const SDL_Event& e)
+{
+}
+
+// # ---------------------------------------------------------------------------
+
+void AssemblerWindow::renderFooder(void)
+{
+	switch(state_)
+	{
+		case State::DEFAULT:
+			renderFooderDefault();
+			break;
+		case State::EDITING:
+			renderFooderEditing();
+			break;
+		case State::COMMAND:
+			renderFooderCommand();
+			break;
+	}
+}
+
+void AssemblerWindow::renderFooderDefault(void)
+{
+	Dimension size = getSize();
+	buffer_t *buf = &buffers_[curBuf_];
+	uint y = size.h - 1;
+	std::string s = lib::stringf("%u,%u", buf->line, buf->pos);
+
+	renderString(Position(size.w - s.size(), y), s);
+
+	if(!err_.empty())
+	{
+		setFontColor(COLOR_RED);
+		setHighlight(true);
+		renderString(Position(0, y), err_.c_str());
+		setHighlight(false);
+		setFontColor(COLOR_BLACK);
+	}
+}
+
+void AssemblerWindow::renderFooderEditing(void)
+{
+	Dimension size = getSize();
+	buffer_t *buf = &buffers_[curBuf_];
+	uint y = size.h - 1;
+	std::string s = lib::stringf("%u,%u", buf->line, buf->pos);
+
+	renderString(Position(0, y), "-- INSERT --");
+	renderString(Position(size.w - s.size(), y), s);
+}
+
+void AssemblerWindow::renderFooderCommand(void)
+{
+	Dimension size = getSize();
+
+	renderString(Position(0, size.h - 1), ":" + cmd_);
+}
+
+std::string AssemblerWindow::getTabName(const std::string& fn)
+{
+	auto i1 = fn.begin(), i2 = fn.end();
+
+	auto i = i2;
+
+	while(i-- != i1) if(*i == '/') { ++i; break; }
+
+	std::string t(i, i2);
+
+	if(t.size() > MXT_MAXTABSIZE)
+	{
+		t = t.substr(t.size() - MXT_MAXTABSIZE);
+	}
+
+	return t;
+}
+
+void AssemblerWindow::renderLine(uint y, const std::string& line, uint idx, uint dx)
+{
+	Dimension size = getSize();
+
+	renderString(Position(0, y), lib::stringf("%04u", idx));
+
+	for(const auto& e : errors_)
+	{
+		if(e.line == idx && e.file == buffers_[burBuf_].file)
+		{
+			renderChar(Position(4, y), '!', COLOR_RED, true);
+		}
+	}
+
+	std::string r = line.substr(dx);
+
+	renderString(Position(5, y), r);
+
+	if(dx > 0) renderChar(Position(5, y), '@', COLOR_CYAN, true);
+	if(r.size() > size.w - 5) renderChar(Position(size.w - 1, y), '@', COLOR_CYAN, true);
+}
+
+}
+

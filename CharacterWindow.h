@@ -24,6 +24,8 @@ namespace winui
 			void renderChar(Position, uint8_t, uint = 0, bool = false);
 			void renderString(Position, const std::string&);
 			void renderCursor( ) { renderChar(cursor_, ' ', color_, false); }
+			void setLineWrap(bool v) { wrapLines_ = v; }
+			void setHighlight(bool v) { highlighted_ = v; }
 
 		private:
 			Image charset_;
@@ -31,8 +33,9 @@ namespace winui
 			Dimension winsize_, charsize_;
 			uint blink_, blinkspeed_;
 			Position cursor_;
-			bool en_blink_, blinkIndependently_;
+			bool en_blink_, blinkIndependently_, wrapLines_;
 			uint color_;
+			bool highlighted_;
 	};
 }
 

@@ -31,6 +31,12 @@ namespace z80
 		static const uint COLOR_YELLOW  = 0x06; // RG-
 		static const uint COLOR_WHITE   = 0x07; // RGB
 
+		enum class State
+		{
+			DEFAULT,
+			GOTO
+		};
+
 		public:
 			DeassemblerWindow(Z80&, uint = MXT_LINECOUNT);
 			virtual ~DeassemblerWindow( );
@@ -42,17 +48,31 @@ namespace z80
 			void onUpdate(uint);
 			void onRender( );
 			void onEvent(const SDL_Event&);
+			void onEventDefault(const SDL_Event&);
+			void onEventGoto(const SDL_Event&);
+			std::string getFooder( );
 			void renderLine(uint, uint16_t, const Instruction&);
+			void renderEmptyLine(uint);
 			void scroll(int);
+			void click(int, bool);
+			void clearBuf( ) { aBuf_[0] = aBuf_[1] = aBuf_[2] = aBuf_[3] = aBufPos_ = 0; }
+			void setGotoCursor( );
+			void gotoAddr(uint16_t);
 
 		private:
 			map_t map_;
-			uint cLines_;
+			uint cLines_, off_;
 			uint16_t pc_, addr_, sel_;
 			Z80 *cpu_;
-			bool followPC_;
+			bool followPC_, scrollable_;
 			check_break_fn checkBreak_;
 			set_break_fn setBreak_;
+			std::map<uint, uint16_t> addresses_;
+			uint8_t aBuf_[4];
+			int aBufPos_;
+			State state_;
+
+			std::map<uint, uint8_t> key_;
 	};
 }
 

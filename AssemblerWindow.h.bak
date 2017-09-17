@@ -1,0 +1,71 @@
+#ifndef Z80_ASSEMBLERWINDOW_H
+#define Z80_ASSEMBLERWINDOW_H
+
+#include <functional>
+
+#include "CharacterWindow.h"
+#include "Z80.h"
+
+namespace z80
+{
+	class AssemblerWindow : public winui::CharacterWindow
+	{
+		typedef std::function<void(const std::string&)> exec_fn;
+		typedef std::function<void(const std::string&)> log_fn;
+		typedef std::vector<std::string> vec_t;
+		typedef vec_t::iterator iter_t;
+
+		struct buffer_t
+		{
+			vec_t content;
+			uint line, pos;
+			std::string file;
+			uint dx, dy;
+		};
+
+		struct error_t
+		{
+			std::string error;
+			std::string file;
+			uint line;
+		};
+
+		enum class State
+		{
+			DEFAULT,
+			EDITING,
+			COMMAND
+		};
+
+		public:
+			AssemblerWindow(exec_fn, log_fn);
+		protected:
+			void onUpdate(uint);
+			void onRender( );
+			void onEvent(const SDL_Event&);
+		private:
+			void onEventDefault(const SDL_Event&);
+			void onEventEditing(const SDL_Event&);
+			void onEventCommand(const SDL_Event&);
+			void renderFooder(uint);
+			void renderFooderDefault(uint);
+			void renderFooderEditing(uint);
+			void renderFooderCommand(uint);
+			std::string getTabName(const std::string&);
+			void renderLine(uint, const std::string&, uint, uint);
+
+		private:
+			exec_fn exec_;
+			log_fn log_;
+			State state_;
+			std::string err_;
+			std::vector<buffer_t> buffers_;
+			uint curBuf_, bufDispOff_;
+			std::vector<error_t> errors_;
+			std::string cmd_;
+			uint cmdIdx_;
+	};
+}
+
+#endif
+
