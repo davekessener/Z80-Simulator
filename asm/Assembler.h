@@ -96,25 +96,23 @@ namespace z80
 			public:
 				void registerPattern(const std::string& s, callback_fn f)
 				{
-					if(contains(s, '*')) extP_.push_back(std::make_pair(s, f));
-					else basicP_.push_back(std::make_pair(s, f));
+					mPatterns.push_back(std::make_pair(s, f));
 				}
 				void finalize( )
 				{
-					std::sort(basicP_.begin(), basicP_.end(), [](const value_type& v1, const value_type& v2)
-						{ return v1.first.size() < v2.first.size(); });
-					std::sort(extP_.begin(), extP_.end(), [](const value_type& v1, const value_type& v2)
-						{ return v1.first.size() < v2.first.size(); });
-					mPatterns.insert(mPatterns.end(), basicP_.begin(), basicP_.end());
-					mPatterns.insert(mPatterns.end(), extP_.begin(), extP_.end());
+					std::sort(mPatterns.begin(), mPatterns.end(), 
+						[](const value_type& v1, const value_type& v2)
+							{ return   v1.first.size() + 1000 * count(v1.first, '*') 
+									 < v2.first.size() + 1000 * count(v2.first, '*'); });
 				}
 				return_fn operator[](const std::string&);
 			private:
 				static bool contains(const std::string& s, char c)
 					{ return std::find(s.begin(), s.end(), c) != s.end(); }
+				static size_t count(const std::string& s, char ch)
+					{ size_t c = 0; for(const auto& e : s) { if(e == ch) ++c; } return c; }
 			private:
 				std::vector<value_type> mPatterns;
-				std::vector<value_type> basicP_, extP_;
 		};
 
 		inline static expr_t make_expr(uint s, const std::string& e, bool r)
@@ -138,6 +136,7 @@ namespace z80
 			void addError(const std::string&, meta_t);
 			void addLabel(const std::string&, meta_t);
 			void addRawData(const std::string&, uint, meta_t);
+			void reserveSpace(const std::string&, meta_t);
 			void setOrigin(const std::string&, meta_t);
 			uint eval(const std::string&, bool);
 

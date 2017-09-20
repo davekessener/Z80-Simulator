@@ -2,7 +2,7 @@ CC=g++
 SRC=$(wildcard *.cc)
 OBJ=$(SRC:.cc=.o)
 DEP=$(wildcard *.h)
-CFLAGS=-ggdb -Wall
+CFLAGS=-ggdb -Wall -I..
 TARGET=asm.exe
 
 .PHONY: all clean

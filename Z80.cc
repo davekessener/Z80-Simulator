@@ -763,6 +763,822 @@ void Z80::execute(void)
 		case 0xCB: // BITS
 			switch(ins = loadB())
 			{
+				case 0x00: // rlc b
+					rotate_left(B(), BIT_BIT7);
+					break;
+				case 0x01: // rlc c
+					rotate_left(C(), BIT_BIT7);
+					break;
+				case 0x02: // rlc d
+					rotate_left(D(), BIT_BIT7);
+					break;
+				case 0x03: // rlc e
+					rotate_left(E(), BIT_BIT7);
+					break;
+				case 0x04: // rlc h
+					rotate_left(H(), BIT_BIT7);
+					break;
+				case 0x05: // rlc l
+					rotate_left(L(), BIT_BIT7);
+					break;
+				case 0x06: // rlc (hl)
+					t8 = loadB(HL);
+					rotate_left(t8, BIT_BIT7);
+					storeB(HL, t8);
+					break;
+				case 0x07: // rlc a
+					rotate_left(B(), BIT_BIT7);
+					break;
+				case 0x08: // rrc b
+					rotate_right(B(), BIT_BIT7);
+					break;
+				case 0x09: // rrc c
+					rotate_right(C(), BIT_BIT7);
+					break;
+				case 0x0A: // rrc d
+					rotate_right(D(), BIT_BIT7);
+					break;
+				case 0x0B: // rrc e
+					rotate_right(E(), BIT_BIT7);
+					break;
+				case 0x0C: // rrc h
+					rotate_right(H(), BIT_BIT7);
+					break;
+				case 0x0D: // rrc l
+					rotate_right(L(), BIT_BIT7);
+					break;
+				case 0x0E: // rrc (hl)
+					t8 = loadB(HL);
+					rotate_right(t8, BIT_BIT7);
+					storeB(HL, t8);
+					break;
+				case 0x0F: // rrc a
+					rotate_right(B(), BIT_BIT7);
+					break;
+				case 0x10: // rl b
+					rotate_left(B(), BIT_CARRY);
+					break;
+				case 0x11: // rl c
+					rotate_left(C(), BIT_CARRY);
+					break;
+				case 0x12: // rl d
+					rotate_left(D(), BIT_CARRY);
+					break;
+				case 0x13: // rl e
+					rotate_left(E(), BIT_CARRY);
+					break;
+				case 0x14: // rl h
+					rotate_left(H(), BIT_CARRY);
+					break;
+				case 0x15: // rl l
+					rotate_left(L(), BIT_CARRY);
+					break;
+				case 0x16: // rl (hl)
+					t8 = loadB(HL);
+					rotate_left(t8, BIT_CARRY);
+					storeB(HL, t8);
+					break;
+				case 0x17: // rl a
+					rotate_left(B(), BIT_CARRY);
+					break;
+				case 0x18: // rr b
+					rotate_right(B(), BIT_CARRY);
+					break;
+				case 0x19: // rr c
+					rotate_right(C(), BIT_CARRY);
+					break;
+				case 0x1A: // rr d
+					rotate_right(D(), BIT_CARRY);
+					break;
+				case 0x1B: // rr e
+					rotate_right(E(), BIT_CARRY);
+					break;
+				case 0x1C: // rr h
+					rotate_right(H(), BIT_CARRY);
+					break;
+				case 0x1D: // rr l
+					rotate_right(L(), BIT_CARRY);
+					break;
+				case 0x1E: // rr (hl)
+					t8 = loadB(HL);
+					rotate_right(t8, BIT_CARRY);
+					storeB(HL, t8);
+					break;
+				case 0x1F: // rr a
+					rotate_right(B(), BIT_CARRY);
+					break;
+				case 0x20: // sla b
+					rotate_left(B(), BIT_A);
+					break;
+				case 0x21: // sla c
+					rotate_left(C(), BIT_A);
+					break;
+				case 0x22: // sla d
+					rotate_left(D(), BIT_A);
+					break;
+				case 0x23: // sla e
+					rotate_left(E(), BIT_A);
+					break;
+				case 0x24: // sla h
+					rotate_left(H(), BIT_A);
+					break;
+				case 0x25: // sla l
+					rotate_left(L(), BIT_A);
+					break;
+				case 0x26: // sla (hl)
+					t8 = loadB(HL);
+					rotate_left(t8, BIT_A);
+					storeB(HL, t8);
+					break;
+				case 0x27: // sla a
+					rotate_left(B(), BIT_A);
+					break;
+				case 0x28: // sra b
+					rotate_right(B(), BIT_A);
+					break;
+				case 0x29: // sra c
+					rotate_right(C(), BIT_A);
+					break;
+				case 0x2A: // sra d
+					rotate_right(D(), BIT_A);
+					break;
+				case 0x2B: // sra e
+					rotate_right(E(), BIT_A);
+					break;
+				case 0x2C: // sra h
+					rotate_right(H(), BIT_A);
+					break;
+				case 0x2D: // sra l
+					rotate_right(L(), BIT_A);
+					break;
+				case 0x2E: // sra (hl)
+					t8 = loadB(HL);
+					rotate_right(t8, BIT_A);
+					storeB(HL, t8);
+					break;
+				case 0x2F: // sra a
+					rotate_right(B(), BIT_A);
+					break;
+				case 0x30: // sll b
+					rotate_left(B(), BIT_L);
+					break;
+				case 0x31: // sll c
+					rotate_left(C(), BIT_L);
+					break;
+				case 0x32: // sll d
+					rotate_left(D(), BIT_L);
+					break;
+				case 0x33: // sll e
+					rotate_left(E(), BIT_L);
+					break;
+				case 0x34: // sll h
+					rotate_left(H(), BIT_L);
+					break;
+				case 0x35: // sll l
+					rotate_left(L(), BIT_L);
+					break;
+				case 0x36: // sll (hl)
+					t8 = loadB(HL);
+					rotate_left(t8, BIT_L);
+					storeB(HL, t8);
+					break;
+				case 0x37: // sll a
+					rotate_left(B(), BIT_L);
+					break;
+				case 0x38: // srl b
+					rotate_right(B(), BIT_L);
+					break;
+				case 0x39: // srl c
+					rotate_right(C(), BIT_L);
+					break;
+				case 0x3A: // srl d
+					rotate_right(D(), BIT_L);
+					break;
+				case 0x3B: // srl e
+					rotate_right(E(), BIT_L);
+					break;
+				case 0x3C: // srl h
+					rotate_right(H(), BIT_L);
+					break;
+				case 0x3D: // srl l
+					rotate_right(L(), BIT_L);
+					break;
+				case 0x3E: // srl (hl)
+					t8 = loadB(HL);
+					rotate_right(t8, BIT_L);
+					storeB(HL, t8);
+					break;
+				case 0x3F: // srl a
+					rotate_right(B(), BIT_L);
+					break;
+				case 0x40: // bit 0,b
+					test_bit(B(), 0);
+					break;
+				case 0x41: // bit 0,c
+					test_bit(C(), 0);
+					break;
+				case 0x42: // bit 0,d
+					test_bit(D(), 0);
+					break;
+				case 0x43: // bit 0,e
+					test_bit(E(), 0);
+					break;
+				case 0x44: // bit 0,h
+					test_bit(H(), 0);
+					break;
+				case 0x45: // bit 0,l
+					test_bit(L(), 0);
+					break;
+				case 0x46: // bit 0,(hl)
+					test_bit(loadB(HL), 0);
+					break;
+				case 0x47: // bit 0,a
+					test_bit(A(), 0);
+					break;
+				case 0x48: // bit 1,b
+					test_bit(B(), 1);
+					break;
+				case 0x49: // bit 1,c
+					test_bit(C(), 1);
+					break;
+				case 0x4A: // bit 1,d
+					test_bit(D(), 1);
+					break;
+				case 0x4B: // bit 1,e
+					test_bit(E(), 1);
+					break;
+				case 0x4C: // bit 1,h
+					test_bit(H(), 1);
+					break;
+				case 0x4D: // bit 1,l
+					test_bit(L(), 1);
+					break;
+				case 0x4E: // bit 1,(hl)
+					test_bit(loadB(HL), 1);
+					break;
+				case 0x4F: // bit 1,a
+					test_bit(A(), 1);
+					break;
+				case 0x50: // bit 2,b
+					test_bit(B(), 2);
+					break;
+				case 0x51: // bit 2,c
+					test_bit(C(), 2);
+					break;
+				case 0x52: // bit 2,d
+					test_bit(D(), 2);
+					break;
+				case 0x53: // bit 2,e
+					test_bit(E(), 2);
+					break;
+				case 0x54: // bit 2,h
+					test_bit(H(), 2);
+					break;
+				case 0x55: // bit 2,l
+					test_bit(L(), 2);
+					break;
+				case 0x56: // bit 2,(hl)
+					test_bit(loadB(HL), 2);
+					break;
+				case 0x57: // bit 2,a
+					test_bit(A(), 2);
+					break;
+				case 0x58: // bit 3,b
+					test_bit(B(), 3);
+					break;
+				case 0x59: // bit 3,c
+					test_bit(C(), 3);
+					break;
+				case 0x5A: // bit 3,d
+					test_bit(D(), 3);
+					break;
+				case 0x5B: // bit 3,e
+					test_bit(E(), 3);
+					break;
+				case 0x5C: // bit 3,h
+					test_bit(H(), 3);
+					break;
+				case 0x5D: // bit 3,l
+					test_bit(L(), 3);
+					break;
+				case 0x5E: // bit 3,(hl)
+					test_bit(loadB(HL), 3);
+					break;
+				case 0x5F: // bit 3,a
+					test_bit(A(), 3);
+					break;
+				case 0x60: // bit 4,b
+					test_bit(B(), 4);
+					break;
+				case 0x61: // bit 4,c
+					test_bit(C(), 4);
+					break;
+				case 0x62: // bit 4,d
+					test_bit(D(), 4);
+					break;
+				case 0x63: // bit 4,e
+					test_bit(E(), 4);
+					break;
+				case 0x64: // bit 4,h
+					test_bit(H(), 4);
+					break;
+				case 0x65: // bit 4,l
+					test_bit(L(), 4);
+					break;
+				case 0x66: // bit 4,(hl)
+					test_bit(loadB(HL), 4);
+					break;
+				case 0x67: // bit 4,a
+					test_bit(A(), 4);
+					break;
+				case 0x68: // bit 5,b
+					test_bit(B(), 5);
+					break;
+				case 0x69: // bit 5,c
+					test_bit(C(), 5);
+					break;
+				case 0x6A: // bit 5,d
+					test_bit(D(), 5);
+					break;
+				case 0x6B: // bit 5,e
+					test_bit(E(), 5);
+					break;
+				case 0x6C: // bit 5,h
+					test_bit(H(), 5);
+					break;
+				case 0x6D: // bit 5,l
+					test_bit(L(), 5);
+					break;
+				case 0x6E: // bit 5,(hl)
+					test_bit(loadB(HL), 5);
+					break;
+				case 0x6F: // bit 5,a
+					test_bit(A(), 5);
+					break;
+				case 0x70: // bit 6,b
+					test_bit(B(), 6);
+					break;
+				case 0x71: // bit 6,c
+					test_bit(C(), 6);
+					break;
+				case 0x72: // bit 6,d
+					test_bit(D(), 6);
+					break;
+				case 0x73: // bit 6,e
+					test_bit(E(), 6);
+					break;
+				case 0x74: // bit 6,h
+					test_bit(H(), 6);
+					break;
+				case 0x75: // bit 6,l
+					test_bit(L(), 6);
+					break;
+				case 0x76: // bit 6,(hl)
+					test_bit(loadB(HL), 6);
+					break;
+				case 0x77: // bit 6,a
+					test_bit(A(), 6);
+					break;
+				case 0x78: // bit 7,b
+					test_bit(B(), 7);
+					break;
+				case 0x79: // bit 7,c
+					test_bit(C(), 7);
+					break;
+				case 0x7A: // bit 7,d
+					test_bit(D(), 7);
+					break;
+				case 0x7B: // bit 7,e
+					test_bit(E(), 7);
+					break;
+				case 0x7C: // bit 7,h
+					test_bit(H(), 7);
+					break;
+				case 0x7D: // bit 7,l
+					test_bit(L(), 7);
+					break;
+				case 0x7E: // bit 7,(hl)
+					test_bit(loadB(HL), 7);
+					break;
+				case 0x7F: // bit 7,a
+					test_bit(A(), 7);
+					break;
+				case 0x80: // res 0,b
+					B() &= ~(1 << 0);
+					break;
+				case 0x81: // res 0,c
+					C() &= ~(1 << 0);
+					break;
+				case 0x82: // res 0,d
+					D() &= ~(1 << 0);
+					break;
+				case 0x83: // res 0,e
+					E() &= ~(1 << 0);
+					break;
+				case 0x84: // res 0,h
+					H() &= ~(1 << 0);
+					break;
+				case 0x85: // res 0,l
+					L() &= ~(1 << 0);
+					break;
+				case 0x86: // res 0,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 0);
+					storeB(HL, t8);
+					break;
+				case 0x87: // res 0,a
+					A() &= ~(1 << 0);
+					break;
+				case 0x88: // res 1,b
+					B() &= ~(1 << 1);
+					break;
+				case 0x89: // res 1,c
+					C() &= ~(1 << 1);
+					break;
+				case 0x8A: // res 1,d
+					D() &= ~(1 << 1);
+					break;
+				case 0x8B: // res 1,e
+					E() &= ~(1 << 1);
+					break;
+				case 0x8C: // res 1,h
+					H() &= ~(1 << 1);
+					break;
+				case 0x8D: // res 1,l
+					L() &= ~(1 << 1);
+					break;
+				case 0x8E: // res 1,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 1);
+					storeB(HL, t8);
+					break;
+				case 0x8F: // res 1,a
+					A() &= ~(1 << 1);
+					break;
+				case 0x90: // res 2,b
+					B() &= ~(1 << 2);
+					break;
+				case 0x91: // res 2,c
+					C() &= ~(1 << 2);
+					break;
+				case 0x92: // res 2,d
+					D() &= ~(1 << 2);
+					break;
+				case 0x93: // res 2,e
+					E() &= ~(1 << 2);
+					break;
+				case 0x94: // res 2,h
+					H() &= ~(1 << 2);
+					break;
+				case 0x95: // res 2,l
+					L() &= ~(1 << 2);
+					break;
+				case 0x96: // res 2,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 2);
+					storeB(HL, t8);
+					break;
+				case 0x97: // res 2,a
+					A() &= ~(1 << 2);
+					break;
+				case 0x98: // res 3,b
+					B() &= ~(1 << 3);
+					break;
+				case 0x99: // res 3,c
+					C() &= ~(1 << 3);
+					break;
+				case 0x9A: // res 3,d
+					D() &= ~(1 << 3);
+					break;
+				case 0x9B: // res 3,e
+					E() &= ~(1 << 3);
+					break;
+				case 0x9C: // res 3,h
+					H() &= ~(1 << 3);
+					break;
+				case 0x9D: // res 3,l
+					L() &= ~(1 << 3);
+					break;
+				case 0x9E: // res 3,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 3);
+					storeB(HL, t8);
+					break;
+				case 0x9F: // res 3,a
+					A() &= ~(1 << 3);
+					break;
+				case 0xA0: // res 4,b
+					B() &= ~(1 << 4);
+					break;
+				case 0xA1: // res 4,c
+					C() &= ~(1 << 4);
+					break;
+				case 0xA2: // res 4,d
+					D() &= ~(1 << 4);
+					break;
+				case 0xA3: // res 4,e
+					E() &= ~(1 << 4);
+					break;
+				case 0xA4: // res 4,h
+					H() &= ~(1 << 4);
+					break;
+				case 0xA5: // res 4,l
+					L() &= ~(1 << 4);
+					break;
+				case 0xA6: // res 4,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 4);
+					storeB(HL, t8);
+					break;
+				case 0xA7: // res 4,a
+					A() &= ~(1 << 4);
+					break;
+				case 0xA8: // res 5,b
+					B() &= ~(1 << 5);
+					break;
+				case 0xA9: // res 5,c
+					C() &= ~(1 << 5);
+					break;
+				case 0xAA: // res 5,d
+					D() &= ~(1 << 5);
+					break;
+				case 0xAB: // res 5,e
+					E() &= ~(1 << 5);
+					break;
+				case 0xAC: // res 5,h
+					H() &= ~(1 << 5);
+					break;
+				case 0xAD: // res 5,l
+					L() &= ~(1 << 5);
+					break;
+				case 0xAE: // res 5,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 5);
+					storeB(HL, t8);
+					break;
+				case 0xAF: // res 5,a
+					A() &= ~(1 << 5);
+					break;
+				case 0xB0: // res 6,b
+					B() &= ~(1 << 6);
+					break;
+				case 0xB1: // res 6,c
+					C() &= ~(1 << 6);
+					break;
+				case 0xB2: // res 6,d
+					D() &= ~(1 << 6);
+					break;
+				case 0xB3: // res 6,e
+					E() &= ~(1 << 6);
+					break;
+				case 0xB4: // res 6,h
+					H() &= ~(1 << 6);
+					break;
+				case 0xB5: // res 6,l
+					L() &= ~(1 << 6);
+					break;
+				case 0xB6: // res 6,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 6);
+					storeB(HL, t8);
+					break;
+				case 0xB7: // res 6,a
+					A() &= ~(1 << 6);
+					break;
+				case 0xB8: // res 7,b
+					B() &= ~(1 << 7);
+					break;
+				case 0xB9: // res 7,c
+					C() &= ~(1 << 7);
+					break;
+				case 0xBA: // res 7,d
+					D() &= ~(1 << 7);
+					break;
+				case 0xBB: // res 7,e
+					E() &= ~(1 << 7);
+					break;
+				case 0xBC: // res 7,h
+					H() &= ~(1 << 7);
+					break;
+				case 0xBD: // res 7,l
+					L() &= ~(1 << 7);
+					break;
+				case 0xBE: // res 7,(hl)
+					t8 = loadB(HL);
+					t8 &= ~(1 << 7);
+					storeB(HL, t8);
+					break;
+				case 0xBF: // res 7,a
+					A() &= ~(1 << 7);
+					break;
+				case 0xC0: // set 0,b
+					B() |=  (1 << 0);
+					break;
+				case 0xC1: // set 0,c
+					C() |=  (1 << 0);
+					break;
+				case 0xC2: // set 0,d
+					D() |=  (1 << 0);
+					break;
+				case 0xC3: // set 0,e
+					E() |=  (1 << 0);
+					break;
+				case 0xC4: // set 0,h
+					H() |=  (1 << 0);
+					break;
+				case 0xC5: // set 0,l
+					L() |=  (1 << 0);
+					break;
+				case 0xC6: // set 0,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 0);
+					storeB(HL, t8);
+					break;
+				case 0xC7: // set 0,a
+					A() |=  (1 << 0);
+					break;
+				case 0xC8: // set 1,b
+					B() |=  (1 << 1);
+					break;
+				case 0xC9: // set 1,c
+					C() |=  (1 << 1);
+					break;
+				case 0xCA: // set 1,d
+					D() |=  (1 << 1);
+					break;
+				case 0xCB: // set 1,e
+					E() |=  (1 << 1);
+					break;
+				case 0xCC: // set 1,h
+					H() |=  (1 << 1);
+					break;
+				case 0xCD: // set 1,l
+					L() |=  (1 << 1);
+					break;
+				case 0xCE: // set 1,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 1);
+					storeB(HL, t8);
+					break;
+				case 0xCF: // set 1,a
+					A() |=  (1 << 1);
+					break;
+				case 0xD0: // set 2,b
+					B() |=  (1 << 2);
+					break;
+				case 0xD1: // set 2,c
+					C() |=  (1 << 2);
+					break;
+				case 0xD2: // set 2,d
+					D() |=  (1 << 2);
+					break;
+				case 0xD3: // set 2,e
+					E() |=  (1 << 2);
+					break;
+				case 0xD4: // set 2,h
+					H() |=  (1 << 2);
+					break;
+				case 0xD5: // set 2,l
+					L() |=  (1 << 2);
+					break;
+				case 0xD6: // set 2,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 2);
+					storeB(HL, t8);
+					break;
+				case 0xD7: // set 2,a
+					A() |=  (1 << 2);
+					break;
+				case 0xD8: // set 3,b
+					B() |=  (1 << 3);
+					break;
+				case 0xD9: // set 3,c
+					C() |=  (1 << 3);
+					break;
+				case 0xDA: // set 3,d
+					D() |=  (1 << 3);
+					break;
+				case 0xDB: // set 3,e
+					E() |=  (1 << 3);
+					break;
+				case 0xDC: // set 3,h
+					H() |=  (1 << 3);
+					break;
+				case 0xDD: // set 3,l
+					L() |=  (1 << 3);
+					break;
+				case 0xDE: // set 3,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 3);
+					storeB(HL, t8);
+					break;
+				case 0xDF: // set 3,a
+					A() |=  (1 << 3);
+					break;
+				case 0xE0: // set 4,b
+					B() |=  (1 << 4);
+					break;
+				case 0xE1: // set 4,c
+					C() |=  (1 << 4);
+					break;
+				case 0xE2: // set 4,d
+					D() |=  (1 << 4);
+					break;
+				case 0xE3: // set 4,e
+					E() |=  (1 << 4);
+					break;
+				case 0xE4: // set 4,h
+					H() |=  (1 << 4);
+					break;
+				case 0xE5: // set 4,l
+					L() |=  (1 << 4);
+					break;
+				case 0xE6: // set 4,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 4);
+					storeB(HL, t8);
+					break;
+				case 0xE7: // set 4,a
+					A() |=  (1 << 4);
+					break;
+				case 0xE8: // set 5,b
+					B() |=  (1 << 5);
+					break;
+				case 0xE9: // set 5,c
+					C() |=  (1 << 5);
+					break;
+				case 0xEA: // set 5,d
+					D() |=  (1 << 5);
+					break;
+				case 0xEB: // set 5,e
+					E() |=  (1 << 5);
+					break;
+				case 0xEC: // set 5,h
+					H() |=  (1 << 5);
+					break;
+				case 0xED: // set 5,l
+					L() |=  (1 << 5);
+					break;
+				case 0xEE: // set 5,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 5);
+					storeB(HL, t8);
+					break;
+				case 0xEF: // set 5,a
+					A() |=  (1 << 5);
+					break;
+				case 0xF0: // set 6,b
+					B() |=  (1 << 6);
+					break;
+				case 0xF1: // set 6,c
+					C() |=  (1 << 6);
+					break;
+				case 0xF2: // set 6,d
+					D() |=  (1 << 6);
+					break;
+				case 0xF3: // set 6,e
+					E() |=  (1 << 6);
+					break;
+				case 0xF4: // set 6,h
+					H() |=  (1 << 6);
+					break;
+				case 0xF5: // set 6,l
+					L() |=  (1 << 6);
+					break;
+				case 0xF6: // set 6,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 6);
+					storeB(HL, t8);
+					break;
+				case 0xF7: // set 6,a
+					A() |=  (1 << 6);
+					break;
+				case 0xF8: // set 7,b
+					B() |=  (1 << 7);
+					break;
+				case 0xF9: // set 7,c
+					C() |=  (1 << 7);
+					break;
+				case 0xFA: // set 7,d
+					D() |=  (1 << 7);
+					break;
+				case 0xFB: // set 7,e
+					E() |=  (1 << 7);
+					break;
+				case 0xFC: // set 7,h
+					H() |=  (1 << 7);
+					break;
+				case 0xFD: // set 7,l
+					L() |=  (1 << 7);
+					break;
+				case 0xFE: // set 7,(hl)
+					t8 = loadB(HL);
+					t8 |=  (1 << 7);
+					storeB(HL, t8);
+					break;
+				case 0xFF: // set 7,a
+					A() |=  (1 << 7);
+					break;
 			}
 			break;
 		case 0xCC: // call z,a16
@@ -897,6 +1713,142 @@ void Z80::execute(void)
 					break;
 				case 0x7E: // ld a,(ix+s8)
 				    A() = loadB(getOff(IX, loadB()));
+					break;
+				case 0xCB: // IX BITS
+					t8 = loadB();
+					switch(ins = loadB())
+					{
+						case 0x06: // rlc (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_left(t8, BIT_BIT7);
+							storeB(t16, t8);
+							break;
+						case 0x0E: // rrc (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_right(t8, BIT_BIT7);
+							storeB(t16, t8);
+							break;
+						case 0x16: // rl (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_left(t8, BIT_CARRY);
+							storeB(t16, t8);
+							break;
+						case 0x1E: // rr (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_right(t8, BIT_CARRY);
+							storeB(t16, t8);
+							break;
+						case 0x26: // sla (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_left(t8, BIT_A);
+							storeB(t16, t8);
+							break;
+						case 0x2E: // sra (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_right(t8, BIT_A);
+							storeB(t16, t8);
+							break;
+						case 0x36: // sll (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_left(t8, BIT_L);
+							storeB(t16, t8);
+							break;
+						case 0x3E: // srl (ix+s8)
+							t8 = loadB(t16 = getOff(IX, t8));
+							rotate_right(t8, BIT_L);
+							storeB(t16, t8);
+							break;
+						case 0x46: // bit 0,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 0);
+							break;
+						case 0x4E: // bit 1,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 1);
+							break;
+						case 0x56: // bit 2,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 2);
+							break;
+						case 0x5E: // bit 3,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 3);
+							break;
+						case 0x66: // bit 4,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 4);
+							break;
+						case 0x6E: // bit 5,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 5);
+							break;
+						case 0x76: // bit 6,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 6);
+							break;
+						case 0x7E: // bit 7,(ix+s8)
+							test_bit(loadB(getOff(IX, t8)), 7);
+							break;
+						case 0x86: // res 0,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 0));
+							break;
+						case 0x8E: // res 1,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 1));
+							break;
+						case 0x96: // res 2,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 2));
+							break;
+						case 0x9E: // res 3,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 3));
+							break;
+						case 0xA6: // res 4,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 4));
+							break;
+						case 0xAE: // res 5,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 5));
+							break;
+						case 0xB6: // res 6,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 6));
+							break;
+						case 0xBE: // res 7,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) & ~(1 << 7));
+							break;
+						case 0xC6: // set 0,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 0));
+							break;
+						case 0xCE: // set 1,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 1));
+							break;
+						case 0xD6: // set 2,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 2));
+							break;
+						case 0xDE: // set 3,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 3));
+							break;
+						case 0xE6: // set 4,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 4));
+							break;
+						case 0xEE: // set 5,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 5));
+							break;
+						case 0xF6: // set 6,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 6));
+							break;
+						case 0xFE: // set 7,(ix+s8)
+							t16 = getOff(IX, t8);
+							storeB(t16, loadB(t16) | (1 << 7));
+							break;
+						default:
+							throw std::string("ERR: unknown IX BIT instruction!");
+					}
 					break;
 				case 0xE1: // pop ix
 				    IX = popW();
@@ -1174,6 +2126,142 @@ void Z80::execute(void)
 				case 0x7E: // ld a,(iy+s8)
 				    A() = loadB(getOff(IY, loadB()));
 					break;
+				case 0xCB: // IY BITS
+					t8 = loadB();
+					switch(ins = loadB())
+					{
+						case 0x06: // rlc (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_left(t8, BIT_BIT7);
+							storeB(t16, t8);
+							break;
+						case 0x0E: // rrc (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_right(t8, BIT_BIT7);
+							storeB(t16, t8);
+							break;
+						case 0x16: // rl (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_left(t8, BIT_CARRY);
+							storeB(t16, t8);
+							break;
+						case 0x1E: // rr (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_right(t8, BIT_CARRY);
+							storeB(t16, t8);
+							break;
+						case 0x26: // sla (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_left(t8, BIT_A);
+							storeB(t16, t8);
+							break;
+						case 0x2E: // sra (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_right(t8, BIT_A);
+							storeB(t16, t8);
+							break;
+						case 0x36: // sll (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_left(t8, BIT_L);
+							storeB(t16, t8);
+							break;
+						case 0x3E: // srl (iy+s8)
+							t8 = loadB(t16 = getOff(IY, t8));
+							rotate_right(t8, BIT_L);
+							storeB(t16, t8);
+							break;
+						case 0x46: // bit 0,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 0);
+							break;
+						case 0x4E: // bit 1,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 1);
+							break;
+						case 0x56: // bit 2,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 2);
+							break;
+						case 0x5E: // bit 3,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 3);
+							break;
+						case 0x66: // bit 4,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 4);
+							break;
+						case 0x6E: // bit 5,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 5);
+							break;
+						case 0x76: // bit 6,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 6);
+							break;
+						case 0x7E: // bit 7,(iy+s8)
+							test_bit(loadB(getOff(IY, t8)), 7);
+							break;
+						case 0x86: // res 0,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 0));
+							break;
+						case 0x8E: // res 1,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 1));
+							break;
+						case 0x96: // res 2,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 2));
+							break;
+						case 0x9E: // res 3,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 3));
+							break;
+						case 0xA6: // res 4,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 4));
+							break;
+						case 0xAE: // res 5,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 5));
+							break;
+						case 0xB6: // res 6,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 6));
+							break;
+						case 0xBE: // res 7,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) & ~(1 << 7));
+							break;
+						case 0xC6: // set 0,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 0));
+							break;
+						case 0xCE: // set 1,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 1));
+							break;
+						case 0xD6: // set 2,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 2));
+							break;
+						case 0xDE: // set 3,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 3));
+							break;
+						case 0xE6: // set 4,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 4));
+							break;
+						case 0xEE: // set 5,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 5));
+							break;
+						case 0xF6: // set 6,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 6));
+							break;
+						case 0xFE: // set 7,(iy+s8)
+							t16 = getOff(IY, t8);
+							storeB(t16, loadB(t16) | (1 << 7));
+							break;
+						default:
+							throw std::string("ERR: unknown IY BIT instruction!");
+					}
+					break;
 				case 0xE1: // pop iy
 				    IY = popW();
 					break;
@@ -1366,6 +2454,32 @@ void Z80::call(uint16_t a)
 void Z80::ret(void)
 {
 	PC = popW();
+}
+
+void Z80::rotate_left(uint8_t& r, uint bit0)
+{
+	bool c = r & FLAG_S;
+	r <<= 1;
+	switch(bit0)
+	{
+		case BIT_BIT7: r |= c ? 1 : 0; break;
+		case BIT_CARRY: r |= F() & FLAG_C ? 1 : 0; break;
+		case BIT_L: r |= 1; break;
+	}
+	set_flags(FLAG_ALL, parityEven(r), r & FLAG_S, r == 0, 0, 0, c);
+}
+
+void Z80::rotate_right(uint8_t& r, uint bit7)
+{
+	bool c = r & 1;
+	r >>= 1;
+	switch(bit7)
+	{
+		case BIT_BIT7: r |= c ? 0x80 : 0; break;
+		case BIT_CARRY: r |= F() & FLAG_C ? 0x80 : 0; break;
+		case BIT_A: r |= r & 0x40 ? 0x80 : 0; break;
+	}
+	set_flags(FLAG_ALL, parityEven(r), r & FLAG_S, r == 0, 0, 0, c);
 }
 
 void Z80::rlca(void)

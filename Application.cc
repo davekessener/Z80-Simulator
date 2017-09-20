@@ -165,7 +165,16 @@ void Application::tick(void)
 			}
 		}
 
-		mCPU.execute();
+		try
+		{
+			mCPU.execute();
+		}
+		catch(const std::string& err)
+		{
+			cpu_running = false;
+			wLog.println("CPU crashed. Error:");
+			wLog.println(err);
+		}
 	}
 
 	closeAllHidden(wWindows);

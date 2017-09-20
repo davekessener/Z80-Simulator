@@ -26,6 +26,11 @@ namespace z80
 			static const uint8_t FLAG_C  = 0x01;
 			static const uint8_t FLAG_ALL= 0xFF;
 
+			static const uint BIT_BIT7 = 0;
+			static const uint BIT_CARRY = 1;
+			static const uint BIT_A = 2;
+			static const uint BIT_L = 3;
+
 		public:
 			void printStatus(std::ostream&);
 			void printRAM(std::ostream&, addr_t, size_t);
@@ -94,6 +99,9 @@ namespace z80
 			void daa( );
 			void rrca( );
 			void rra( );
+			void rotate_left(uint8_t&, uint);
+			void rotate_right(uint8_t&, uint);
+			void test_bit(uint8_t v, uint i) { set_flags(FLAG_N | FLAG_H | FLAG_Z, 0, 0, v & (1 << i), 1, 0, 0); }
 			uint8_t& A() { return ((uint8_t *) &AF)[1]; }
 			uint8_t& F() { return ((uint8_t *) &AF)[0]; }
 			uint8_t& B() { return ((uint8_t *) &BC)[1]; }
