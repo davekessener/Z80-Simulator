@@ -52,6 +52,7 @@ namespace z80
 			void interrupt(const Tokenizer&);
 			void setBreak(const Tokenizer&);
 			void open(const Tokenizer&);
+			void clear(const Tokenizer&);
 
 		private:
 			template<typename T>

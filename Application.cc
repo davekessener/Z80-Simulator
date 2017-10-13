@@ -33,6 +33,7 @@
 #define CMD_INT "int"
 #define CMD_BREAK "break"
 #define CMD_OPEN "open"
+#define CMD_CLEAR "clear"
 
 #define MXT_ICON_PATH "z80.bmp"
 
@@ -81,7 +82,8 @@ Application::Application(void)
 	mInstructions[CMD_SET]   = &Application::set;
 	mInstructions[CMD_INT]   = &Application::interrupt;
 	mInstructions[CMD_BREAK] = &Application::setBreak;
-	mInstructions[CMD_OPEN] = &Application::open;
+	mInstructions[CMD_OPEN]  = &Application::open;
+	mInstructions[CMD_CLEAR] = &Application::clear;
 
 #define MAKE_SET(R) \
 std::make_pair( \
@@ -399,6 +401,12 @@ void Application::open(const Tokenizer& t)
 	{
 		throw std::string("Unknown window '" + t[1].token + "'.");
 	}
+}
+
+void Application::clear(const Tokenizer& t)
+{
+	wTerminal.println("Clearing RAM and registers.");
+	mCPU.clear();
 }
 
 }

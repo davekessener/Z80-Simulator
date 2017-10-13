@@ -69,6 +69,7 @@ namespace z80
 			bool getFlagN( ) const { return AF & FLAG_N; }
 			bool getFlagC( ) const { return AF & FLAG_C; }
 			std::string disassemble(uint16_t) const;
+			void clear( );
 		private:
 			void pushB(uint8_t);
 			void pushW(uint16_t);
@@ -91,6 +92,7 @@ namespace z80
 			void set_flags(uint, uint /*P/V*/, uint /*S*/, uint /*Z*/, uint /*H*/, uint /*N*/, uint /*C*/);
 			bool parityEven(uint8_t);
 			void addHL(uint16_t, bool = false);
+			void subHL(uint16_t, bool = false);
 			void addA(uint8_t, bool = false);
 			void subA(uint8_t, bool = false);
 			void logicA(uint8_t, bool);

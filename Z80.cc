@@ -734,13 +734,15 @@ void Z80::execute(void)
 			BC = popW();
 			break;
 		case 0xC2: // jp nz,a16
-			if(!(F() & FLAG_Z)) PC = loadW();
+			t16 = loadW();
+			if(!(F() & FLAG_Z)) PC = t16;
 			break;
 		case 0xC3: // jp a16
 			PC = loadW();
 			break;
 		case 0xC4: // call nz,a16
-			if(!(F() & FLAG_Z)) call(loadW());
+			t16 = loadW();
+			if(!(F() & FLAG_Z)) call(t16);
 			break;
 		case 0xC5: // push bc
 			pushW(BC);
@@ -758,7 +760,8 @@ void Z80::execute(void)
 			ret();
 			break;
 		case 0xCA: // jp z,a16
-			if(F() & FLAG_Z) PC = loadW();
+			t16 = loadW();
+			if(F() & FLAG_Z) PC = t16;
 			break;
 		case 0xCB: // BITS
 			switch(ins = loadB())
@@ -1582,7 +1585,8 @@ void Z80::execute(void)
 			}
 			break;
 		case 0xCC: // call z,a16
-			if(F() & FLAG_Z) call(loadW());
+			t16 = loadW();
+			if(F() & FLAG_Z) call(t16);
 			break;
 		case 0xCD: // call a16
 			call(loadW());
@@ -1600,13 +1604,15 @@ void Z80::execute(void)
 			DE = popW();
 			break;
 		case 0xD2: // jp nc,a16
-			if(!(F() & FLAG_C)) PC = loadW();
+			t16 = loadW();
+			if(!(F() & FLAG_C)) PC = t16;
 			break;
 		case 0xD3: // out (d8),a
 			out(loadB(), A());
 			break;
 		case 0xD4: // call nc,a16
-			if(!(F() & FLAG_C)) call(loadW());
+			t16 = loadW();
+			if(!(F() & FLAG_C)) call(t16);
 			break;
 		case 0xD5: // push de
 			pushW(DE);
@@ -1626,13 +1632,15 @@ void Z80::execute(void)
 			swap(HL, HLp);
 			break;
 		case 0xDA: // jp c,a16
-			if(F() & FLAG_C) PC = loadW();
+			t16 = loadW();
+			if(F() & FLAG_C) PC = t16;
 			break;
 		case 0xDB: // in a,(d8)
 			A() = in(loadB());
 			break;
 		case 0xDC: // call c,a16
-			if(F() & FLAG_C) call(loadW());
+			t16 = loadW();
+			if(F() & FLAG_C) call(t16);
 			break;
 		case 0xDD: // IX
 			switch(ins = loadB())
@@ -1663,11 +1671,15 @@ void Z80::execute(void)
 					break;
 				case 0x34: // inc (ix+s8)
 				    t16 = getOff(IX, loadB());
-					storeW(t16, loadW(t16) + 1);
+					t8 = loadW(t16) + 1;
+					storeB(t16, t8);
+					set_inc_flags(t8);
 					break;
 				case 0x35: // dec (ix+s8)
 				    t16 = getOff(IX, loadB());
-					storeW(t16, loadW(t16) - 1);
+					t8 = loadW(t16) - 1;
+					storeB(t16, t8);
+					set_dec_flags(t8);
 					break;
 				case 0x39: // add ix,sp
 				    IX += SP;
@@ -1713,6 +1725,32 @@ void Z80::execute(void)
 					break;
 				case 0x7E: // ld a,(ix+s8)
 				    A() = loadB(getOff(IX, loadB()));
+					break;
+				case 0x86: // add a,(ix+s8)
+					addA(loadB(getOff(IX, loadB())), false);
+					break;
+				case 0x8E: // adc a,(ix+s8)
+					addA(loadB(getOff(IX, loadB())), true);
+					break;
+				case 0x96: // sub (ix+s8)
+					subA(loadB(getOff(IX, loadB())), false);
+					break;
+				case 0x9E: // sbc a,(ix+s8)
+					subA(loadB(getOff(IX, loadB())), true);
+					break;
+				case 0xA6: // and (ix+s8)
+					logicA(A() & loadB(getOff(IX, loadB())), true);
+					break;
+				case 0xAE: // xor (ix+s8)
+					logicA(A() ^ loadB(getOff(IX, loadB())), false);
+					break;
+				case 0xB6: // or (ix+s8)
+					logicA(A() | loadB(getOff(IX, loadB())), false);
+					break;
+				case 0xBE: // cp (ix+s8)
+					t8 = A();
+					subA(loadB(getOff(IX, loadB())), false);
+					A() = t8;
 					break;
 				case 0xCB: // IX BITS
 					t8 = loadB();
@@ -1886,7 +1924,8 @@ void Z80::execute(void)
 			HL = popW();
 			break;
 		case 0xE2: // jp po,a16
-			if(!(F() & FLAG_PV)) PC = loadW();
+			t16 = loadW();
+			if(!(F() & FLAG_PV)) PC = t16;
 			break;
 		case 0xE3: // ex (sp),hl
 			t16 = loadW(SP);
@@ -1894,7 +1933,8 @@ void Z80::execute(void)
 			HL = t16;
 			break;
 		case 0xE4: // call po,a16
-			if(!(F() & FLAG_PV)) call(loadW());
+			t16 = loadW();
+			if(!(F() & FLAG_PV)) call(t16);
 			break;
 		case 0xE5: // push hl
 			pushW(HL);
@@ -1912,13 +1952,15 @@ void Z80::execute(void)
 			PC = HL;
 			break;
 		case 0xEA: // jp pe,a16
-			if(F() & FLAG_PV) PC = loadW();
+			t16 = loadW();
+			if(F() & FLAG_PV) PC = t16;
 			break;
 		case 0xEB: // ex de,hl
 			swap(DE, HL);
 			break;
 		case 0xEC: // call pe,a16
-			if(F() & FLAG_PV) call(loadW());
+			t16 = loadW();
+			if(F() & FLAG_PV) call(t16);
 			break;
 		case 0xED: // EXTD
 			switch(ins = loadB())
@@ -1929,6 +1971,9 @@ void Z80::execute(void)
 				case 0x41: // out (c),b
 				    out(C(), B());
 				    break;
+				case 0x42: // sbc hl,bc
+					subHL(BC, true);
+					break;
 				case 0x43: // ld (a16),bc
 				    storeW(loadW(), BC);
 					break;
@@ -1938,6 +1983,9 @@ void Z80::execute(void)
 				case 0x49: // out (c),c
 				    out(C(), C());
 				    break;
+				case 0x4A: // adc hl,bc
+					addHL(BC, true);
+					break;
 			    case 0x4B: // ld bc,(a16)
 				    BC = loadW(loadW());
 					break;
@@ -1947,6 +1995,9 @@ void Z80::execute(void)
 				case 0x51: // out (c),d
 				    out(C(), D());
 				    break;
+				case 0x52: // sbc hl,de
+					subHL(DE, true);
+					break;
 				case 0x53: // ld (a16),de
 				    storeW(loadW(), DE);
 					break;
@@ -1958,6 +2009,9 @@ void Z80::execute(void)
 				case 0x59: // out (c),e
 				    out(C(), E());
 				    break;
+				case 0x5A: // adc hl,de
+					addHL(DE, true);
+					break;
 				case 0x5B: // ld de,(a16)
 				    DE = loadW(loadW());
 					break;
@@ -1967,6 +2021,9 @@ void Z80::execute(void)
 				case 0x61: // out (c),h
 				    out(C(), H());
 				    break;
+				case 0x62: // sbc hl,hl
+					subHL(HL, true);
+					break;
 				case 0x63: // ld (a16),hl
 				    storeW(loadW(), HL);
 					break;
@@ -1976,6 +2033,9 @@ void Z80::execute(void)
 				case 0x69: // out (c),l
 				    out(C(), L());
 				    break;
+				case 0x6A: // adc hl,hl
+					addHL(HL, true);
+					break;
 				case 0x6B: // ld hl,(a16)
 				    HL = loadW(loadW());
 					break;
@@ -1985,6 +2045,9 @@ void Z80::execute(void)
 				case 0x71: // out (c),0
 				    out(C(), 0);
 				    break;
+				case 0x72: // sbc hl,sp
+					subHL(SP, true);
+					break;
 				case 0x73: // ld (a16),sp
 				    storeW(loadW(), SP);
 					break;
@@ -1994,6 +2057,9 @@ void Z80::execute(void)
 				case 0x79: // out (c),a
 				    out(C(), A());
 				    break;
+				case 0x7A: // adc hl,sp
+					addHL(SP, true);
+					break;
 				case 0x7B: // ld sp,(a16)
 				    SP = loadW(loadW());
 					break;
@@ -2014,13 +2080,15 @@ void Z80::execute(void)
 			AF = popW();
 			break;
 		case 0xF2: // jp p,a16
-			if(!(F() & FLAG_N)) PC = loadW();
+			t16 = loadW();
+			if(!(F() & FLAG_N)) PC = t16;
 			break;
 		case 0xF3: // di
 			int_ = false;
 			break;
 		case 0xF4: // call p,a16
-			if(!(F() & FLAG_N)) call(loadW());
+			t16 = loadW();
+			if(!(F() & FLAG_N)) call(t16);
 			break;
 		case 0xF5: // push af
 			pushW(AF);
@@ -2038,13 +2106,15 @@ void Z80::execute(void)
 			SP = HL;
 			break;
 		case 0xFA: // jp m,a16
-			if(F() & FLAG_N) PC = loadW();
+			t16 = loadW();
+			if(F() & FLAG_N) PC = t16;
 			break;
 		case 0xFB: // ei
 			int_ = true;
 			break;
 		case 0xFC: // call m,a16
-			if(F() & FLAG_N) call(loadW());
+			t16 = loadW();
+			if(F() & FLAG_N) call(t16);
 			break;
 		case 0xFD: // IY
 			switch(ins = loadB())
@@ -2075,11 +2145,15 @@ void Z80::execute(void)
 					break;
 				case 0x34: // inc (iy+s8)
 				    t16 = getOff(IY, loadB());
-					storeW(t16, loadW(t16) + 1);
+					t8 = loadW(t16) + 1;
+					storeB(t16, t8);
+					set_inc_flags(t8);
 					break;
 				case 0x35: // dec (iy+s8)
 				    t16 = getOff(IY, loadB());
-					storeW(t16, loadW(t16) - 1);
+					t8 = loadW(t16) - 1;
+					storeB(t16, t8);
+					set_dec_flags(t8);
 					break;
 				case 0x39: // add iy,sp
 				    IY += SP;
@@ -2125,6 +2199,32 @@ void Z80::execute(void)
 					break;
 				case 0x7E: // ld a,(iy+s8)
 				    A() = loadB(getOff(IY, loadB()));
+					break;
+				case 0x86: // add a,(iy+s8)
+					addA(loadB(getOff(IY, loadB())), false);
+					break;
+				case 0x8E: // adc a,(iy+s8)
+					addA(loadB(getOff(IY, loadB())), true);
+					break;
+				case 0x96: // sub (iy+s8)
+					subA(loadB(getOff(IY, loadB())), false);
+					break;
+				case 0x9E: // sbc a,(iy+s8)
+					subA(loadB(getOff(IY, loadB())), true);
+					break;
+				case 0xA6: // and (iy+s8)
+					logicA(A() & loadB(getOff(IY, loadB())), true);
+					break;
+				case 0xAE: // xor (iy+s8)
+					logicA(A() ^ loadB(getOff(IY, loadB())), false);
+					break;
+				case 0xB6: // or (iy+s8)
+					logicA(A() | loadB(getOff(IY, loadB())), false);
+					break;
+				case 0xBE: // cp (iy+s8)
+					t8 = A();
+					subA(loadB(getOff(IY, loadB())), false);
+					A() = t8;
 					break;
 				case 0xCB: // IY BITS
 					t8 = loadB();
@@ -2308,40 +2408,83 @@ bool Z80::parityEven(uint8_t v)
 
 void Z80::addHL(uint16_t v, bool use_c)
 {
+	uint16_t hl = HL;
+	uint16_t cIn, cOut;
+
 	uint cf = (use_c && (F() & FLAG_C)) ? 1 : 0;
-	uint32_t r = HL + (uint32_t)v + cf;
 	uint16_t t = (HL & 0x0FFF) + (v & 0x0FFF) + cf;
 
-	set_flags(FLAG_H | FLAG_N | FLAG_C,
-		0,
-		0,
-		0,
+	if(cf)
+	{
+		cOut = (hl >= 0xFFFF - v) ? 1 : 0;
+		HL = hl + v + 1;
+	}
+	else
+	{
+		cOut = (hl > 0xFFFF - v) ? 1 : 0;
+		HL = hl + v;
+	}
+
+	cIn = HL ^ hl ^ v;
+	cIn = (cIn >> 15) ^ cOut;
+
+	set_flags(use_c ? FLAG_ALL : FLAG_H | FLAG_N | FLAG_C,
+		cIn,
+		HL & 0x8000,
+		HL == 0,
 		t & 0x1000,
 		0,
-		r & 0x10000);
-	HL = r & 0xFFFF;
+		cOut);
+}
+
+void Z80::subHL(uint16_t v, bool use_c)
+{
+	if(!use_c) F() &= ~FLAG_C;
+
+	F() ^= FLAG_C;
+	addHL(~v, true);
+	F() ^= FLAG_C;
+	F() |= FLAG_N;
 }
 
 void Z80::addA(uint8_t v, bool use_c)
 {
+	uint8_t a = A();
+	uint8_t cIn, cOut;
+
 	uint cf = (use_c && (F() & FLAG_C)) ? 1 : 0;
-	uint16_t r = A() + (v & 0xFF) + cf;
 	uint8_t t = (A() & 0x0F) + (v & 0x0F) + cf;
 
-	set_flags(FLAG_ALL, 
-		((A() & FLAG_S) == (v & FLAG_S)) ? (A() & FLAG_S) != (r & FLAG_S) : 0,
-		r & FLAG_S,
-		(r & 0xFF) == 0,
+	if(cf)
+	{
+		cOut = (a >= 0xff - v) ? 1 : 0;
+		A() = a + v + 1;
+	}
+	else
+	{
+		cOut = (a > 0xff - v) ? 1 : 0;
+		A() = a + v;
+	}
+	
+	cIn = A() ^ a ^ v;
+	cIn = (cIn >> 7) ^ cOut;
+	
+	set_flags(FLAG_ALL,
+		cIn,
+		A() & FLAG_S,
+		A() == 0,
 		t & FLAG_H,
 		0,
-		(r & 0x80) != (A() & 0x80));
-	A() = r & 0xFF;
+		cOut);
 }
 
 void Z80::subA(uint8_t v, bool use_c)
 {
-	uint8_t cf = (use_c && (F() & FLAG_C)) ? 1 : 0;
-	addA(-(v + cf), false);
+	if(!use_c) F() &= ~FLAG_C;
+
+	F() ^= FLAG_C;
+	addA(~v, true);
+	F() ^= FLAG_C;
 	F() |= FLAG_N;
 }
 
@@ -2604,6 +2747,15 @@ void Z80::set_flags(uint flags, uint f_pv, uint f_s, uint f_z, uint f_h, uint f_
 std::string Z80::disassemble(uint16_t addr) const
 {
 	return z80::disassemble(&ram_[addr]).literal;
+}
+
+void Z80::clear(void)
+{
+	AF = AFp = BC = BCp = DE = DEp = HL = HLp = IR = IX = IY = SP = PC = 0;
+	for(uint i = 0 ; i < 0x10000 ; ++i)
+	{
+		ram_[i] = 0;
+	}
 }
 
 }

@@ -566,7 +566,10 @@ uint Assembler::eval(const std::string& s, bool relative)
 
 void Assembler::addLabel(const std::string& lbl, meta_t meta)
 {
-	// TODO error checking
+	if(mSymbols.count(lbl))
+	{
+		throw lib::stringf("Multiple instances of label '%s': $%04X -> $%04X", lbl.c_str(), mSymbols[lbl], mAddress);
+	}
 
 	mSymbols[lbl] = mAddress;
 
@@ -712,7 +715,7 @@ Assembler::Tokenizer::Tokenizer(const std::string& fn)
 					}
 					break;
 				case STATE_CHAR:
-					if(*i1 == '\'') throw std::string("Empty char constant!"); // TODO
+					if(*i1 == '\'') throw std::string("Empty char constant!");
 					else if(*i1 == '\\')
 					{
 						state = STATE_ESC;
@@ -727,7 +730,7 @@ Assembler::Tokenizer::Tokenizer(const std::string& fn)
 				case STATE_CHAR_END:
 					if(*i1 != '\'')
 					{
-						throw lib::stringf("Char not properly terminated! (Expected ' instead of %c)", *i1); // TODO
+						throw lib::stringf("Char not properly terminated! (Expected ' instead of %c)", *i1);
 					}
 					state = STATE_DEF;
 					break;
@@ -1009,7 +1012,7 @@ void Assembler::initialize(void)
 	P0("dec c")		{0x0D} PNE;
 	P1("ld c,*")	{0x0E} PNE;
 	P0("rrca")		{0x0F} PNE;
-	P0("djnz *")	{0x10} PNE;
+	P1r("djnz *")	{0x10} PNE;
 	P2("ld de,*")	{0x11} PNE;
 	P0("ld (de),a")	{0x12} PNE;
 	P0("inc de")	{0x13} PNE;
@@ -1227,7 +1230,7 @@ void Assembler::initialize(void)
 	P0("cp a,a")		{0xBF} PNE;
 	P0("ret nz")		{0xC0} PNE;
 	P0("pop bc")		{0xC1} PNE;
-	P0("jp nz,*")		{0xC2} PNE;
+	P2("jp nz,*")		{0xC2} PNE;
 	P2("jp *")			{0xC3} PNE;
 	P2("call nz,*")		{0xC4} PNE;
 	P0("push bc")		{0xC5} PNE;
